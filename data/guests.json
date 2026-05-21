@@ -150,5 +150,25 @@
     "id": 1778877109742,
     "table": null,
     "deleted": true
+  },
+  {
+    "name": "iliana",
+    "group": "Family",
+    "rsvp": "confirmed",
+    "dietary": "Vegetarian",
+    "plusOne": false,
+    "id": 1778930672566,
+    "table": null,
+    "deleted": false
+  },
+  {
+    "name": "ilias4",
+    "group": "Friend",
+    "rsvp": "pending",
+    "dietary": "Vegan",
+    "plusOne": false,
+    "id": 1779146652554,
+    "table": null,
+    "deleted": false
   }
 ]

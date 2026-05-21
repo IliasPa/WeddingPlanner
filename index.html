@@ -366,11 +366,19 @@
           day: "numeric",
         });
         const eventLabel =
-          meta && meta.title_type === "Baptism Planner"
-            ? "Your Baptism Day"
-            : meta && meta.title_type === "Wedding Planner"
-              ? "Your Wedding Day"
-              : "Your Reception Day";
+          meta && meta.title_type === "Wedding Planner"
+            ? "Your Wedding Day"
+            : meta && meta.title_type === "Baptism Planner"
+              ? "Your Baptism Day"
+              : meta && meta.title_type === "Reception Planner"
+                ? "Your Reception Day"
+                : meta && meta.title_type === "Birthday Planner"
+                  ? "Your Birthday Day"
+                  : meta && meta.title_type === "Party Planner"
+                    ? "Your Party Day"
+                    : meta && meta.title_type === "Anniversary Planner"
+                      ? "Your Anniversary Day"
+                      : "Your Event Day";
         const totalSpent = budget.categories.reduce((s, c) => s + c.spent, 0);
         const activeGuests = guests.filter((g) => !g.deleted);
         const activeChecklist = checklist.filter((c) => !c.deleted);
@@ -800,7 +808,11 @@
             ...b,
             categories: b.categories.map((c) =>
               c.id === parseInt(newExpense.category)
-                ? { ...c, spent: c.spent + amt, expenses: [...(c.expenses || []), expense] }
+                ? {
+                    ...c,
+                    spent: c.spent + amt,
+                    expenses: [...(c.expenses || []), expense],
+                  }
                 : c,
             ),
           }));
@@ -827,7 +839,17 @@
             >
               {editTotal ? (
                 <Card style={{ textAlign: "center", padding: "18px 16px" }}>
-                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, fontWeight: 500 }}>
+                  <div
+                    style={{
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      color: COLORS.muted,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      marginBottom: 8,
+                      fontWeight: 500,
+                    }}
+                  >
                     Total Budget
                   </div>
                   <input
@@ -835,22 +857,81 @@
                     onChange={(e) => setTotalInput(e.target.value)}
                     autoFocus
                     type="number"
-                    style={{ width: "100%", padding: "4px 8px", border: `1px solid ${COLORS.border}`, borderRadius: 8, fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 500, textAlign: "center", color: COLORS.ink, background: COLORS.white, boxSizing: "border-box" }}
+                    style={{
+                      width: "100%",
+                      padding: "4px 8px",
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: 28,
+                      fontWeight: 500,
+                      textAlign: "center",
+                      color: COLORS.ink,
+                      background: COLORS.white,
+                      boxSizing: "border-box",
+                    }}
                   />
-                  <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 10 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      justifyContent: "center",
+                      marginTop: 10,
+                    }}
+                  >
                     <button
-                      onClick={() => { setBudget((b) => ({ ...b, total: parseFloat(totalInput) || b.total })); setEditTotal(false); }}
-                      style={{ padding: "4px 14px", background: COLORS.rose, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}
-                    >Save</button>
+                      onClick={() => {
+                        setBudget((b) => ({
+                          ...b,
+                          total: parseFloat(totalInput) || b.total,
+                        }));
+                        setEditTotal(false);
+                      }}
+                      style={{
+                        padding: "4px 14px",
+                        background: COLORS.rose,
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 13,
+                      }}
+                    >
+                      Save
+                    </button>
                     <button
                       onClick={() => setEditTotal(false)}
-                      style={{ padding: "4px 14px", background: "transparent", color: COLORS.muted, border: `1px solid ${COLORS.border}`, borderRadius: 8, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}
-                    >Cancel</button>
+                      style={{
+                        padding: "4px 14px",
+                        background: "transparent",
+                        color: COLORS.muted,
+                        border: `1px solid ${COLORS.border}`,
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 13,
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </Card>
               ) : (
-                <div onClick={() => { setTotalInput(budget.total); setEditTotal(true); }} title="Click to edit total budget" style={{ cursor: "pointer" }}>
-                  <StatCard label="Total Budget" value={`$${budget.total.toLocaleString()}`} accent={COLORS.ink} sub="Click to edit" />
+                <div
+                  onClick={() => {
+                    setTotalInput(budget.total);
+                    setEditTotal(true);
+                  }}
+                  title="Click to edit total budget"
+                  style={{ cursor: "pointer" }}
+                >
+                  <StatCard
+                    label="Total Budget"
+                    value={`$${budget.total.toLocaleString()}`}
+                    accent={COLORS.ink}
+                    sub="Click to edit"
+                  />
                 </div>
               )}
               <StatCard
@@ -923,12 +1004,21 @@
                           {cat.name}
                         </div>
                         {editBudgetId === cat.id ? (
-                          <div style={{ display: "flex", gap: 4, alignItems: "center", marginTop: 2 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 4,
+                              alignItems: "center",
+                              marginTop: 2,
+                            }}
+                          >
                             <input
                               autoFocus
                               type="number"
                               value={budgetCatInput}
-                              onChange={(e) => setBudgetCatInput(e.target.value)}
+                              onChange={(e) =>
+                                setBudgetCatInput(e.target.value)
+                              }
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") saveCatBudget(cat.id);
                                 if (e.key === "Escape") setEditBudgetId(null);
@@ -955,7 +1045,9 @@
                                 cursor: "pointer",
                                 fontSize: 11,
                               }}
-                            >✓</button>
+                            >
+                              ✓
+                            </button>
                           </div>
                         ) : (
                           <div
@@ -1077,15 +1169,26 @@
                         marginTop: 6,
                       }}
                     >
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.muted }}>
-                        {pct}% used · ${(cat.budget - cat.spent).toLocaleString()} left
+                      <div
+                        style={{
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          color: COLORS.muted,
+                        }}
+                      >
+                        {pct}% used · $
+                        {(cat.budget - cat.spent).toLocaleString()} left
                       </div>
                       {catExpenses.length > 0 && (
                         <button
-                          onClick={() => setExpandedCat(isExpanded ? null : cat.id)}
+                          onClick={() =>
+                            setExpandedCat(isExpanded ? null : cat.id)
+                          }
                           style={{
                             padding: "2px 9px",
-                            background: isExpanded ? COLORS.roseLight : "transparent",
+                            background: isExpanded
+                              ? COLORS.roseLight
+                              : "transparent",
                             color: COLORS.rose,
                             border: `1px solid ${COLORS.roseMid}`,
                             borderRadius: 6,
@@ -1095,12 +1198,20 @@
                             fontWeight: 500,
                           }}
                         >
-                          {isExpanded ? "Hide" : `${catExpenses.length} expense${catExpenses.length !== 1 ? "s" : ""}`}
+                          {isExpanded
+                            ? "Hide"
+                            : `${catExpenses.length} expense${catExpenses.length !== 1 ? "s" : ""}`}
                         </button>
                       )}
                     </div>
                     {isExpanded && catExpenses.length > 0 && (
-                      <div style={{ marginTop: 10, borderTop: `1px solid ${COLORS.border}`, paddingTop: 10 }}>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          borderTop: `1px solid ${COLORS.border}`,
+                          paddingTop: 10,
+                        }}
+                      >
                         {catExpenses.map((exp, i) => (
                           <div
                             key={i}
@@ -1110,15 +1221,47 @@
                               alignItems: "center",
                               paddingBottom: i < catExpenses.length - 1 ? 8 : 0,
                               marginBottom: i < catExpenses.length - 1 ? 8 : 0,
-                              borderBottom: i < catExpenses.length - 1 ? `1px solid ${COLORS.border}` : "none",
+                              borderBottom:
+                                i < catExpenses.length - 1
+                                  ? `1px solid ${COLORS.border}`
+                                  : "none",
                             }}
                           >
                             <div>
-                              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.ink }}>{exp.name}</div>
-                              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: COLORS.muted }}>{exp.date}</div>
+                              <div
+                                style={{
+                                  fontFamily: "'DM Sans', sans-serif",
+                                  fontSize: 13,
+                                  color: COLORS.ink,
+                                }}
+                              >
+                                {exp.name}
+                              </div>
+                              <div
+                                style={{
+                                  fontFamily: "'DM Sans', sans-serif",
+                                  fontSize: 11,
+                                  color: COLORS.muted,
+                                }}
+                              >
+                                {exp.date}
+                              </div>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: COLORS.ink }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontFamily: "'DM Sans', sans-serif",
+                                  fontSize: 13,
+                                  fontWeight: 500,
+                                  color: COLORS.ink,
+                                }}
+                              >
                                 ${exp.amount.toLocaleString()}
                               </div>
                               <button
@@ -1130,7 +1273,9 @@
                                         ? {
                                             ...c,
                                             spent: c.spent - exp.amount,
-                                            expenses: (c.expenses || []).filter((_, idx) => idx !== i),
+                                            expenses: (c.expenses || []).filter(
+                                              (_, idx) => idx !== i,
+                                            ),
                                           }
                                         : c,
                                     ),
@@ -3956,7 +4101,7 @@
                   >
                     {meta.partner1_name || "Partner 1"}
                     {meta.title_type === "Wedding Planner" && (
-                      <>{" "}&{" "}{meta.partner2_name || "Partner 2"}</>
+                      <> & {meta.partner2_name || "Partner 2"}</>
                     )}
                   </div>
                   <div
@@ -4013,6 +4158,10 @@
                       <option>Wedding Planner</option>
                       <option>Baptism Planner</option>
                       <option>Reception Planner</option>
+                      <option>Birthday Planner</option>
+                      <option>Party Planner</option>
+                      <option>Anniversary Planner</option>
+                      <option>Event Planner</option>
                     </select>
                     <input
                       value={metaInput.partner1_name || ""}

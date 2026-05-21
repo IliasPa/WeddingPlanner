@@ -1,6 +1,6 @@
 # Wedding Planner
 
-A personal wedding planning desktop app built with Electron + React. Manage your budget, guests, venues, photographers, seating, checklist, and vendors — all from one local app with data persisted to disk.
+A personal event planning desktop app built with Electron + React. Manage your budget, guests, venues, photographers, seating, checklist, and vendors — all from one local app with data persisted to disk. Supports multiple event types: weddings, baptisms, receptions, birthdays, parties, and anniversaries.
 
 ---
 
@@ -93,6 +93,26 @@ v1.3 adds per-category expense line items to the Budget section, so you can log 
 
 ---
 
+### v1.4 — Multi-Event Type Support
+
+v1.4 makes the app generic enough to plan any major event, not just weddings.
+
+**What changed:**
+
+- The Overview header label now adapts to the event type stored in `meta.title_type`:
+  - `"Wedding Planner"` → **Your Wedding Day**
+  - `"Baptism Planner"` → **Your Baptism Day**
+  - `"Reception Planner"` → **Your Reception Day**
+  - `"Birthday Planner"` → **Your Birthday Day**
+  - `"Party Planner"` → **Your Party Day**
+  - `"Anniversary Planner"` → **Your Anniversary Day**
+  - Any other value → **Your Event Day**
+- Set `title_type` in `data/meta.json` to switch the app's event context
+
+**No infrastructure changes** — the REST API and file layout are the same as v1.3.
+
+---
+
 ## Features
 
 | Section           | Description                                                                                                                     |
@@ -131,9 +151,9 @@ npm install
 
 ---
 
-## Running the App (v1.3)
+## Running the App (v1.4)
 
-v1.3 requires both the API server and the Electron window to be running.
+v1.4 requires both the API server and the Electron window to be running.
 
 **Option A — double-click launcher (macOS):**
 

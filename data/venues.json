@@ -7,7 +7,7 @@
     "price": 8500,
     "style": "Garden & Ballroom",
     "rating": 4.9,
-    "selected": false,
+    "selected": true,
     "notes": "Outdoor ceremony space with fountain, indoor reception hall",
     "image": "🏰",
     "deleted": false
@@ -33,7 +33,7 @@
     "price": 7000,
     "style": "Rustic Vineyard",
     "rating": 4.7,
-    "selected": true,
+    "selected": false,
     "notes": "Private vineyard, wine tasting included for guests",
     "image": "🍷",
     "deleted": false
