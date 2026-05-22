@@ -113,6 +113,38 @@ v1.4 makes the app generic enough to plan any major event, not just weddings.
 
 ---
 
+### v1.5 — Bilingual UI + Editable Budget Categories + Custom Checklist Categories
+
+v1.5 adds full Greek/English language support across the entire UI, makes budget category names editable, and lets you manage checklist categories as first-class data.
+
+**Language support:**
+
+- 🇬🇧 / 🇬🇷 flag switcher in the top-right corner of the Overview tab
+- Toggles between English and Greek for all static UI text: nav labels, section titles, buttons, form labels, placeholder text, filter chips, status badges, and stat cards
+- Selected language is persisted in `data/meta.json` (durable across restarts) and `localStorage` (fast fallback on load)
+- Locale-aware date formatting: Greek locale uses `el-GR` month names, English uses `en-US`
+- All dynamic user-entered data (names, notes, task text) remains unchanged
+
+**Budget — editable category names:**
+
+- Click any budget category name (e.g. "Venue", "Catering") to edit it inline
+- Same interaction pattern as the existing budget/spent amount editing: dashed underline, text input on click, Enter or blur to save, Escape to cancel
+- Name change is independent of the budget amount — the two fields have separate edit modes
+- Updated name reflects immediately in the category dropdown of the Add Expense form
+
+**Checklist — custom categories:**
+
+- Categories are now stored as first-class data in `checklist.json` alongside tasks
+- `checklist.json` format changed from a flat array to `{ "tasks": [...], "categories": [...] }`
+- **Add** a new category with the dashed `+ Category` button at the end of the filter chips — type a name and press Enter
+- **Delete** any empty category (zero tasks) by clicking the `×` that appears on the right side of its chip
+- The category dropdown in the Add Task form automatically reflects the current category list
+- On first load, categories derived from existing task data are merged with the stored list for backward compatibility
+
+**No server changes** — `PUT /api/checklist` (full-collection replace) handles the new format transparently.
+
+---
+
 ## Features
 
 | Section           | Description                                                                                                                     |
@@ -123,7 +155,7 @@ v1.4 makes the app generic enough to plan any major event, not just weddings.
 | **Photographers** | Add photographers with style, price, rating; mark one as selected                                                               |
 | **Guests**        | Add guests with RSVP status (confirmed / pending / declined), search and filter, dietary notes                                  |
 | **Tables**        | Drag-and-drop seating planner — assign guests to named tables                                                                   |
-| **Checklist**     | Task list grouped by category with done/undone toggle and progress tracking                                                     |
+| **Checklist**     | Task list grouped by category with done/undone toggle and progress tracking; add and delete custom categories                   |
 | **Vendors**       | Track vendors (florist, catering, etc.) with contact info and status                                                            |
 
 All sections support soft-delete (trash) with restore — deleted items are hidden but recoverable.
@@ -151,9 +183,9 @@ npm install
 
 ---
 
-## Running the App (v1.4)
+## Running the App (v1.5)
 
-v1.4 requires both the API server and the Electron window to be running.
+v1.5 requires both the API server and the Electron window to be running.
 
 **Option A — double-click launcher (macOS):**
 

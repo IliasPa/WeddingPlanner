@@ -31,7 +31,374 @@
     <script src="dataStore.js"></script>
     <script type="text/babel">
       // Adapted from wedding_planner.jsx — runs in-browser via React CDN + Babel
-      const { useState, useEffect } = React;
+      const { useState, useEffect, createContext, useContext } = React;
+
+      const LangContext = createContext(null);
+
+      const TRANSLATIONS = {
+        en: {
+          nav_overview: "Overview",
+          nav_budget: "Budget",
+          nav_venues: "Venues",
+          nav_photographers: "Photographers",
+          nav_guests: "Guests",
+          nav_seating: "Seating",
+          nav_checklist: "Checklist",
+          nav_vendors: "Vendors",
+          app_tagline: "Planning your forever",
+          days: "days",
+          save: "Save",
+          cancel: "Cancel",
+          add: "Add",
+          restore: "Restore",
+          delete: "Delete",
+          hide: "Hide",
+          trash_title: "Deleted Items",
+          trash_empty: "No deleted items",
+          evt_wedding: "Your Wedding Day",
+          evt_baptism: "Your Baptism Day",
+          evt_reception: "Your Reception Day",
+          evt_birthday: "Your Birthday Day",
+          evt_party: "Your Party Day",
+          evt_anniversary: "Your Anniversary Day",
+          evt_event: "Your Event Day",
+          ovr_days_until: "Days Until",
+          ovr_days_sub: "until your big day",
+          ovr_budget_used: "Budget Used",
+          ovr_guests_conf: "Guests Confirmed",
+          ovr_tasks_done: "Tasks Done",
+          ovr_of_invited: "of {n} invited",
+          ovr_tasks_sub: "{done} of {total} tasks",
+          ovr_budget_overview: "Budget Overview",
+          ovr_planning: "Planning Progress",
+          ovr_selected_venue: "Selected Venue",
+          ovr_selected_photo: "Selected Photographer",
+          ovr_no_venue: "No venue selected yet",
+          ovr_no_photo: "No photographer selected yet",
+          bud_title: "Budget & Expenses",
+          bud_sub:
+            "Track every expense and stay on budget for your perfect day",
+          bud_total: "Total Budget",
+          bud_spent_total: "Total Spent",
+          bud_remaining: "Remaining",
+          bud_on_track: "on track",
+          bud_over: "over budget!",
+          bud_click_edit: "Click to edit",
+          bud_click_edit_total: "Click to edit total budget",
+          bud_budget_prefix: "Budget: $",
+          bud_spent: "spent",
+          bud_used: "used",
+          bud_left: "left",
+          bud_add_expense: "Add an Expense",
+          bud_desc: "Description",
+          bud_category: "Category",
+          bud_amount: "Amount ($)",
+          bud_desc_ph: "e.g. Deposit for florist",
+          expense: "expense",
+          expenses: "expenses",
+          ven_title: "Venue Options",
+          ven_sub:
+            "Compare and select the perfect setting for your ceremony and reception",
+          ven_add: "+ Add Venue",
+          ven_new: "New Venue",
+          ven_name: "Name",
+          ven_name_ph: "Venue name",
+          ven_location: "Location",
+          ven_location_ph: "City / Region",
+          ven_style: "Style",
+          ven_style_ph: "e.g. Garden",
+          ven_emoji: "Emoji",
+          ven_price: "Price ($)",
+          ven_capacity: "Capacity",
+          ven_guests_ph: "guests",
+          ven_rating: "Rating",
+          ven_notes: "Notes",
+          ven_notes_ph: "Additional notes…",
+          ven_save: "Save Venue",
+          ven_selected: "✓ Selected",
+          ven_up_to: "Up to {n} guests",
+          ven_select: "Select This Venue",
+          ven_delete: "Delete venue",
+          pho_title: "Photographers",
+          pho_sub: "Choose your artist to capture every magical moment",
+          pho_add: "+ Add Photographer",
+          pho_new: "New Photographer",
+          pho_name: "Name",
+          pho_name_ph: "Photographer name",
+          pho_style: "Style",
+          pho_style_ph: "e.g. Candid",
+          pho_price: "Price ($)",
+          pho_hours: "Hours",
+          pho_hours_ph: "hrs",
+          pho_rating: "Rating",
+          pho_specialties: "Specialties (comma-separated)",
+          pho_specialties_ph: "e.g. Portraits, Drone",
+          pho_save: "Save",
+          pho_chosen: "✓ Chosen",
+          pho_package: "Package",
+          pho_selected_badge: "✓ Selected",
+          pho_select: "Select",
+          pho_delete: "Delete",
+          pho_no_photo: "No photographer selected yet",
+          gue_title: "Guest List",
+          gue_sub: "Manage your guest list and track RSVPs",
+          gue_total: "Total Invited",
+          gue_confirmed: "Confirmed",
+          gue_pending: "Pending",
+          gue_declined: "Declined",
+          gue_search: "Search guests…",
+          gue_filter_all: "all",
+          gue_add: "+ Add Guest",
+          gue_new: "New Guest",
+          gue_name_ph: "Full name (or couple name)",
+          gue_col_name: "Name",
+          gue_col_group: "Group",
+          gue_col_rsvp: "RSVP",
+          gue_col_dietary: "Dietary",
+          gue_col_table: "Table",
+          gue_not_found: "No guests found",
+          grp_family: "Family",
+          grp_friend: "Friend",
+          grp_colleague: "Colleague",
+          grp_partners_family: "Partner's Family",
+          grp_partners_friend: "Partner's Friend",
+          rsvp_confirmed: "Confirmed",
+          rsvp_pending: "Pending",
+          rsvp_declined: "Declined",
+          diet_none: "None",
+          diet_vegetarian: "Vegetarian",
+          diet_vegan: "Vegan",
+          diet_gluten: "Gluten-free",
+          diet_sodium: "Low-sodium",
+          diet_kosher: "Kosher",
+          diet_halal: "Halal",
+          tbl_title: "Seating & Tables",
+          tbl_sub: "Arrange your guests and design your reception seating plan",
+          tbl_assign_title: "Assign Guest to Table",
+          tbl_guest_ph: "Select guest…",
+          tbl_table_ph: "Select table…",
+          tbl_assign: "Assign",
+          tbl_not_seated: "{n} guests not yet seated",
+          tbl_new: "Add New Table",
+          tbl_name_ph: "Table name",
+          tbl_seats: "Seats",
+          tbl_no_seated: "No guests seated yet",
+          tbl_delete: "Delete table",
+          chk_title: "Planning Checklist",
+          chk_sub: "Every detail for your perfect day, tracked and organised",
+          chk_completed: "Completed",
+          chk_of_tasks: "of {n} tasks",
+          chk_remaining: "Remaining",
+          chk_progress: "Progress",
+          chk_new_ph: "Add a new task…",
+          chk_planning: "Planning",
+          chk_high: "High",
+          chk_medium: "Medium",
+          chk_low: "Low",
+          chk_add: "+ Add",
+          chk_delete: "Delete task",
+          chk_filter_all: "all",
+          vnd_title: "Vendors & Suppliers",
+          vnd_sub: "All your wedding vendors in one place",
+          vnd_add: "+ Add Vendor",
+          vnd_new: "New Vendor",
+          vnd_type: "Type",
+          vnd_name: "Business Name",
+          vnd_name_ph: "Vendor name",
+          vnd_email: "Email",
+          vnd_email_ph: "email@vendor.com",
+          vnd_phone: "Phone",
+          vnd_phone_ph: "+1 555 0000",
+          vnd_cost: "Cost ($)",
+          vnd_notes_ph: "Notes…",
+          vnd_save: "Save Vendor",
+          bud_click_edit_name: "Click to edit category name",
+          chk_add_cat: "+ Category",
+          chk_cat_ph: "Category name…",
+          chk_del_cat: "Delete category",
+        },
+        el: {
+          nav_overview: "Επισκόπηση",
+          nav_budget: "Προϋπολογισμός",
+          nav_venues: "Χώροι",
+          nav_photographers: "Φωτογράφοι",
+          nav_guests: "Καλεσμένοι",
+          nav_seating: "Θέσεις",
+          nav_checklist: "Εργασίες",
+          nav_vendors: "Προμηθευτές",
+          app_tagline: "Σχεδιάζουμε το μέλλον σας",
+          days: "μέρες",
+          save: "Αποθήκευση",
+          cancel: "Ακύρωση",
+          add: "Προσθήκη",
+          restore: "Επαναφορά",
+          delete: "Διαγραφή",
+          hide: "Απόκρυψη",
+          trash_title: "Διαγραμμένα",
+          trash_empty: "Δεν υπάρχουν διαγραμμένα",
+          evt_wedding: "Η Μέρα του Γάμου σας",
+          evt_baptism: "Η Μέρα της Βάπτισης",
+          evt_reception: "Η Μέρα Δεξίωσης",
+          evt_birthday: "Η Μέρα Γενεθλίων σας",
+          evt_party: "Η Μέρα Πάρτι σας",
+          evt_anniversary: "Η Επέτειός σας",
+          evt_event: "Η Μέρα Εκδήλωσής σας",
+          ovr_days_until: "Μέρες",
+          ovr_days_sub: "ως τη μεγάλη μέρα",
+          ovr_budget_used: "Προϋπολογισμός",
+          ovr_guests_conf: "Καλεσμένοι",
+          ovr_tasks_done: "Εργασίες",
+          ovr_of_invited: "από {n} καλεσμένους",
+          ovr_tasks_sub: "{done} από {total} εργασίες",
+          ovr_budget_overview: "Επισκόπηση Προϋπολογισμού",
+          ovr_planning: "Πρόοδος Σχεδιασμού",
+          ovr_selected_venue: "Επιλεγμένος Χώρος",
+          ovr_selected_photo: "Επιλεγμένος Φωτογράφος",
+          ovr_no_venue: "Δεν επιλέχθηκε χώρος ακόμα",
+          ovr_no_photo: "Δεν επιλέχθηκε φωτογράφος ακόμα",
+          bud_title: "Προϋπολογισμός & Έξοδα",
+          bud_sub: "Παρακολουθήστε κάθε έξοδο και μείνετε εντός προϋπολογισμού",
+          bud_total: "Συνολικός Προϋπολογισμός",
+          bud_spent_total: "Συνολικά Έξοδα",
+          bud_remaining: "Υπόλοιπο",
+          bud_on_track: "εντός πλαισίου",
+          bud_over: "υπέρβαση!",
+          bud_click_edit: "Κλικ για επεξεργασία",
+          bud_click_edit_total: "Κλικ για επεξεργασία συνολικού",
+          bud_budget_prefix: "Προϋπ.: $",
+          bud_spent: "δαπανήθηκε",
+          bud_used: "χρησιμοποιήθηκε",
+          bud_left: "υπόλοιπο",
+          bud_add_expense: "Προσθήκη Εξόδου",
+          bud_desc: "Περιγραφή",
+          bud_category: "Κατηγορία",
+          bud_amount: "Ποσό (€)",
+          bud_desc_ph: "π.χ. Προκαταβολή ανθοπώλη",
+          expense: "έξοδο",
+          expenses: "έξοδα",
+          ven_title: "Επιλογές Χώρου",
+          ven_sub:
+            "Συγκρίνετε και επιλέξτε το τέλειο σκηνικό για την τελετή σας",
+          ven_add: "+ Προσθήκη Χώρου",
+          ven_new: "Νέος Χώρος",
+          ven_name: "Όνομα",
+          ven_name_ph: "Όνομα χώρου",
+          ven_location: "Τοποθεσία",
+          ven_location_ph: "Πόλη / Περιοχή",
+          ven_style: "Στυλ",
+          ven_style_ph: "π.χ. Κήπος",
+          ven_emoji: "Emoji",
+          ven_price: "Κόστος (€)",
+          ven_capacity: "Χωρητικότητα",
+          ven_guests_ph: "καλεσμένοι",
+          ven_rating: "Αξιολόγηση",
+          ven_notes: "Σημειώσεις",
+          ven_notes_ph: "Επιπλέον σημειώσεις…",
+          ven_save: "Αποθήκευση Χώρου",
+          ven_selected: "✓ Επιλεγμένο",
+          ven_up_to: "Έως {n} καλεσμένοι",
+          ven_select: "Επιλογή Χώρου",
+          ven_delete: "Διαγραφή χώρου",
+          pho_title: "Φωτογράφοι",
+          pho_sub: "Επιλέξτε τον καλλιτέχνη σας για κάθε μαγική στιγμή",
+          pho_add: "+ Προσθήκη Φωτογράφου",
+          pho_new: "Νέος Φωτογράφος",
+          pho_name: "Όνομα",
+          pho_name_ph: "Όνομα φωτογράφου",
+          pho_style: "Στυλ",
+          pho_style_ph: "π.χ. Φυσικό",
+          pho_price: "Κόστος (€)",
+          pho_hours: "Ώρες",
+          pho_hours_ph: "ώρ.",
+          pho_rating: "Αξιολόγηση",
+          pho_specialties: "Ειδικότητες (χωρισμένες με κόμμα)",
+          pho_specialties_ph: "π.χ. Πορτρέτα, Drone",
+          pho_save: "Αποθήκευση",
+          pho_chosen: "✓ Επιλεγμένος",
+          pho_package: "Πακέτο",
+          pho_selected_badge: "✓ Επιλεγμένος",
+          pho_select: "Επιλογή",
+          pho_delete: "Διαγραφή",
+          pho_no_photo: "Δεν επιλέχθηκε φωτογράφος ακόμα",
+          gue_title: "Λίστα Καλεσμένων",
+          gue_sub: "Διαχειριστείτε τη λίστα και παρακολουθήστε RSVPs",
+          gue_total: "Σύνολο Καλεσμένων",
+          gue_confirmed: "Επιβεβαιωμένοι",
+          gue_pending: "Εκκρεμούν",
+          gue_declined: "Αρνήθηκαν",
+          gue_search: "Αναζήτηση καλεσμένων…",
+          gue_filter_all: "όλοι",
+          gue_add: "+ Προσθήκη Καλεσμένου",
+          gue_new: "Νέος Καλεσμένος",
+          gue_name_ph: "Πλήρες όνομα (ή ζευγάρι)",
+          gue_col_name: "Όνομα",
+          gue_col_group: "Ομάδα",
+          gue_col_rsvp: "RSVP",
+          gue_col_dietary: "Διατροφή",
+          gue_col_table: "Τραπέζι",
+          gue_not_found: "Δεν βρέθηκαν καλεσμένοι",
+          grp_family: "Οικογένεια",
+          grp_friend: "Φίλος",
+          grp_colleague: "Συνάδελφος",
+          grp_partners_family: "Οικογένεια Συντρόφου",
+          grp_partners_friend: "Φίλος Συντρόφου",
+          rsvp_confirmed: "Επιβεβαιωμένος",
+          rsvp_pending: "Εκκρεμεί",
+          rsvp_declined: "Αρνήθηκε",
+          diet_none: "Κανένα",
+          diet_vegetarian: "Χορτοφάγος",
+          diet_vegan: "Βίγκαν",
+          diet_gluten: "Χωρίς γλουτένη",
+          diet_sodium: "Χαμηλό νάτριο",
+          diet_kosher: "Κόσερ",
+          diet_halal: "Χαλάλ",
+          tbl_title: "Τραπέζια & Θέσεις",
+          tbl_sub:
+            "Τακτοποιήστε τους καλεσμένους και σχεδιάστε τη διάταξη δεξίωσης",
+          tbl_assign_title: "Ανάθεση Καλεσμένου σε Τραπέζι",
+          tbl_guest_ph: "Επιλέξτε καλεσμένο…",
+          tbl_table_ph: "Επιλέξτε τραπέζι…",
+          tbl_assign: "Ανάθεση",
+          tbl_not_seated: "{n} καλεσμένοι χωρίς θέση",
+          tbl_new: "Νέο Τραπέζι",
+          tbl_name_ph: "Όνομα τραπεζιού",
+          tbl_seats: "Θέσεις",
+          tbl_no_seated: "Δεν έχουν τοποθετηθεί καλεσμένοι",
+          tbl_delete: "Διαγραφή τραπεζιού",
+          chk_title: "Λίστα Υποχρεώσεων",
+          chk_sub: "Κάθε λεπτομέρεια για την τέλεια μέρα σας, οργανωμένη",
+          chk_completed: "Ολοκληρωμένες",
+          chk_of_tasks: "από {n} εργασίες",
+          chk_remaining: "Εναπομείνασες",
+          chk_progress: "Πρόοδος",
+          chk_new_ph: "Προσθέστε νέα εργασία…",
+          chk_planning: "Προγραμματισμός",
+          chk_high: "Υψηλή",
+          chk_medium: "Μεσαία",
+          chk_low: "Χαμηλή",
+          chk_add: "+ Προσθήκη",
+          chk_delete: "Διαγραφή εργασίας",
+          chk_filter_all: "όλες",
+          vnd_title: "Προμηθευτές & Υπηρεσίες",
+          vnd_sub: "Όλοι οι προμηθευτές σε ένα μέρος",
+          vnd_add: "+ Προσθήκη Προμηθευτή",
+          vnd_new: "Νέος Προμηθευτής",
+          vnd_type: "Τύπος",
+          vnd_name: "Επωνυμία",
+          vnd_name_ph: "Όνομα προμηθευτή",
+          vnd_email: "Email",
+          vnd_email_ph: "email@vendor.com",
+          vnd_phone: "Τηλέφωνο",
+          vnd_phone_ph: "+30 210 0000",
+          vnd_cost: "Κόστος (€)",
+          vnd_notes_ph: "Σημειώσεις…",
+          vnd_save: "Αποθήκευση Προμηθευτή",
+          bud_click_edit_name: "Κλικ για επεξεργασία ονόματος κατηγορίας",
+          chk_add_cat: "+ Κατηγορία",
+          chk_cat_ph: "Όνομα κατηγορίας…",
+          chk_del_cat: "Διαγραφή κατηγορίας",
+        },
+      };
 
       const API_BASE = "http://localhost:3001/api";
 
@@ -216,10 +583,11 @@
       }
 
       function TrashButton({ count, onClick, active }) {
+        const { t } = useContext(LangContext);
         return (
           <button
             onClick={onClick}
-            title="View deleted items"
+            title={t("trash_title")}
             style={{
               display: "flex",
               alignItems: "center",
@@ -259,6 +627,7 @@
       }
 
       function TrashPanel({ items, onRestore, renderItem }) {
+        const { t } = useContext(LangContext);
         return (
           <div
             style={{
@@ -280,7 +649,7 @@
                 fontWeight: 600,
               }}
             >
-              Deleted Items
+              {t("trash_title")}
             </div>
             {items.length === 0 ? (
               <div
@@ -290,7 +659,7 @@
                   color: COLORS.muted,
                 }}
               >
-                No deleted items
+                {t("trash_empty")}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -332,7 +701,7 @@
                         marginLeft: 12,
                       }}
                     >
-                      Restore
+                      {t("restore")}
                     </button>
                   </div>
                 ))}
@@ -360,25 +729,24 @@
           0,
           Math.ceil((metaDate - now) / (1000 * 60 * 60 * 24)),
         );
-        const dateString = metaDate.toLocaleDateString(undefined, {
+        const { lang, setLang, t } = useContext(LangContext);
+        const locale = lang === "el" ? "el-GR" : "en-US";
+        const dateString = metaDate.toLocaleDateString(locale, {
           year: "numeric",
           month: "long",
           day: "numeric",
         });
-        const eventLabel =
-          meta && meta.title_type === "Wedding Planner"
-            ? "Your Wedding Day"
-            : meta && meta.title_type === "Baptism Planner"
-              ? "Your Baptism Day"
-              : meta && meta.title_type === "Reception Planner"
-                ? "Your Reception Day"
-                : meta && meta.title_type === "Birthday Planner"
-                  ? "Your Birthday Day"
-                  : meta && meta.title_type === "Party Planner"
-                    ? "Your Party Day"
-                    : meta && meta.title_type === "Anniversary Planner"
-                      ? "Your Anniversary Day"
-                      : "Your Event Day";
+        const eventTypeMap = {
+          "Wedding Planner": "evt_wedding",
+          "Baptism Planner": "evt_baptism",
+          "Reception Planner": "evt_reception",
+          "Birthday Planner": "evt_birthday",
+          "Party Planner": "evt_party",
+          "Anniversary Planner": "evt_anniversary",
+        };
+        const eventLabel = t(
+          eventTypeMap[meta && meta.title_type] || "evt_event",
+        );
         const totalSpent = budget.categories.reduce((s, c) => s + c.spent, 0);
         const activeGuests = guests.filter((g) => !g.deleted);
         const activeChecklist = checklist.filter((c) => !c.deleted);
@@ -397,31 +765,65 @@
 
         return (
           <div>
-            <div style={{ marginBottom: 32 }}>
-              <div
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 13,
-                  color: COLORS.muted,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  fontWeight: 500,
-                  marginBottom: 4,
-                }}
-              >
-                {eventLabel}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: 32,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 13,
+                    color: COLORS.muted,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    fontWeight: 500,
+                    marginBottom: 4,
+                  }}
+                >
+                  {eventLabel}
+                </div>
+                <h2
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 40,
+                    fontWeight: 500,
+                    color: COLORS.ink,
+                    margin: 0,
+                  }}
+                >
+                  {dateString}
+                </h2>
               </div>
-              <h2
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 40,
-                  fontWeight: 500,
-                  color: COLORS.ink,
-                  margin: 0,
-                }}
-              >
-                {dateString}
-              </h2>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[
+                  { value: "en", flag: "🇬🇧" },
+                  { value: "el", flag: "🇬🇷" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setLang(opt.value)}
+                    title={opt.value === "en" ? "English" : "Ελληνικά"}
+                    style={{
+                      fontSize: 22,
+                      background: "none",
+                      border: `1.5px solid ${lang === opt.value ? COLORS.rose : "transparent"}`,
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      padding: "4px 6px",
+                      lineHeight: 1,
+                      opacity: lang === opt.value ? 1 : 0.45,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {opt.flag}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div
@@ -433,27 +835,30 @@
               }}
             >
               <StatCard
-                label="Days Until"
+                label={t("ovr_days_until")}
                 value={daysLeft}
-                sub="until your big day"
+                sub={t("ovr_days_sub")}
                 accent={COLORS.rose}
               />
               <StatCard
-                label="Budget Used"
+                label={t("ovr_budget_used")}
                 value={`${pct}%`}
-                sub={`$${totalSpent.toLocaleString()} of $${budget.total.toLocaleString()}`}
+                sub={`$${totalSpent.toLocaleString()} / $${budget.total.toLocaleString()}`}
                 accent={COLORS.gold}
               />
               <StatCard
-                label="Guests Confirmed"
+                label={t("ovr_guests_conf")}
                 value={confirmed}
-                sub={`of ${activeGuests.length} invited`}
+                sub={t("ovr_of_invited", { n: activeGuests.length })}
                 accent={COLORS.sage}
               />
               <StatCard
-                label="Tasks Done"
+                label={t("ovr_tasks_done")}
                 value={`${taskPct}%`}
-                sub={`${done} of ${activeChecklist.length} tasks`}
+                sub={t("ovr_tasks_sub", {
+                  done,
+                  total: activeChecklist.length,
+                })}
                 accent={COLORS.brown}
               />
             </div>
@@ -478,7 +883,7 @@
                     fontWeight: 500,
                   }}
                 >
-                  Budget Overview
+                  {t("ovr_budget_overview")}
                 </div>
                 {budget.categories.map((cat) => (
                   <div key={cat.id} style={{ marginBottom: 12 }}>
@@ -542,7 +947,7 @@
                     fontWeight: 500,
                   }}
                 >
-                  Planning Progress
+                  {t("ovr_planning")}
                 </div>
                 {[
                   "Venue",
@@ -552,9 +957,9 @@
                   "Beauty",
                 ].map((cat) => {
                   const tasks = activeChecklist.filter(
-                    (t) => t.category === cat,
+                    (item) => item.category === cat,
                   );
-                  const doneTasks = tasks.filter((t) => t.done).length;
+                  const doneTasks = tasks.filter((item) => item.done).length;
                   const pct = tasks.length
                     ? Math.round((doneTasks / tasks.length) * 100)
                     : 0;
@@ -628,7 +1033,7 @@
                     fontWeight: 500,
                   }}
                 >
-                  Selected Venue
+                  {t("ovr_selected_venue")}
                 </div>
                 {selectedVenue ? (
                   <div
@@ -663,8 +1068,8 @@
                           marginTop: 4,
                         }}
                       >
-                        ${selectedVenue.price.toLocaleString()} · Up to{" "}
-                        {selectedVenue.capacity} guests
+                        ${selectedVenue.price.toLocaleString()} ·{" "}
+                        {t("ven_up_to", { n: selectedVenue.capacity })}
                       </div>
                     </div>
                   </div>
@@ -676,7 +1081,7 @@
                       fontSize: 14,
                     }}
                   >
-                    No venue selected yet
+                    {t("ovr_no_venue")}
                   </p>
                 )}
               </Card>
@@ -693,7 +1098,7 @@
                     fontWeight: 500,
                   }}
                 >
-                  Selected Photographer
+                  {t("ovr_selected_photo")}
                 </div>
                 {selectedPhoto ? (
                   <div
@@ -729,7 +1134,7 @@
                         }}
                       >
                         ${selectedPhoto.price.toLocaleString()} ·{" "}
-                        {selectedPhoto.hours} hours
+                        {selectedPhoto.hours} {t("pho_hours_ph")}
                       </div>
                     </div>
                   </div>
@@ -741,7 +1146,7 @@
                       fontSize: 14,
                     }}
                   >
-                    No photographer selected yet
+                    {t("ovr_no_photo")}
                   </p>
                 )}
               </Card>
@@ -752,6 +1157,7 @@
 
       // Budget component
       function Budget({ budget, setBudget }) {
+        const { t } = useContext(LangContext);
         const [newExpense, setNewExpense] = useState({
           name: "",
           category: budget.categories[0]?.id || 1,
@@ -763,6 +1169,8 @@
         const [spentInput, setSpentInput] = useState("");
         const [editBudgetId, setEditBudgetId] = useState(null);
         const [budgetCatInput, setBudgetCatInput] = useState("");
+        const [editNameId, setEditNameId] = useState(null);
+        const [nameInput, setNameInput] = useState("");
         const [expandedCat, setExpandedCat] = useState(null);
         const totalSpent = budget.categories.reduce((s, c) => s + c.spent, 0);
         const remaining = budget.total - totalSpent;
@@ -779,6 +1187,20 @@
           }
           setEditSpentId(null);
           setSpentInput("");
+        };
+
+        const saveCatName = (catId) => {
+          const val = nameInput.trim();
+          if (val) {
+            setBudget((b) => ({
+              ...b,
+              categories: b.categories.map((c) =>
+                c.id === catId ? { ...c, name: val } : c,
+              ),
+            }));
+          }
+          setEditNameId(null);
+          setNameInput("");
         };
 
         const saveCatBudget = (catId) => {
@@ -825,9 +1247,7 @@
 
         return (
           <div>
-            <SectionTitle sub="Track every expense and stay on budget for your perfect day">
-              Budget & Expenses
-            </SectionTitle>
+            <SectionTitle sub={t("bud_sub")}>{t("bud_title")}</SectionTitle>
 
             <div
               style={{
@@ -850,7 +1270,7 @@
                       fontWeight: 500,
                     }}
                   >
-                    Total Budget
+                    {t("bud_total")}
                   </div>
                   <input
                     value={totalInput}
@@ -898,7 +1318,7 @@
                         fontSize: 13,
                       }}
                     >
-                      Save
+                      {t("save")}
                     </button>
                     <button
                       onClick={() => setEditTotal(false)}
@@ -913,7 +1333,7 @@
                         fontSize: 13,
                       }}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                   </div>
                 </Card>
@@ -923,27 +1343,27 @@
                     setTotalInput(budget.total);
                     setEditTotal(true);
                   }}
-                  title="Click to edit total budget"
+                  title={t("bud_click_edit_total")}
                   style={{ cursor: "pointer" }}
                 >
                   <StatCard
-                    label="Total Budget"
+                    label={t("bud_total")}
                     value={`$${budget.total.toLocaleString()}`}
                     accent={COLORS.ink}
-                    sub="Click to edit"
+                    sub={t("bud_click_edit")}
                   />
                 </div>
               )}
               <StatCard
-                label="Total Spent"
+                label={t("bud_spent_total")}
                 value={`$${totalSpent.toLocaleString()}`}
-                sub={`${Math.round((totalSpent / budget.total) * 100)}% of budget`}
+                sub={`${Math.round((totalSpent / budget.total) * 100)}%`}
                 accent={COLORS.rose}
               />
               <StatCard
-                label="Remaining"
+                label={t("bud_remaining")}
                 value={`$${remaining.toLocaleString()}`}
-                sub={remaining >= 0 ? "on track" : "over budget!"}
+                sub={remaining >= 0 ? t("bud_on_track") : t("bud_over")}
                 accent={remaining >= 0 ? COLORS.sage : "#C44"}
               />
             </div>
@@ -993,16 +1413,75 @@
                       }}
                     >
                       <div>
-                        <div
-                          style={{
-                            fontFamily: "'Cormorant Garamond', serif",
-                            fontSize: 18,
-                            fontWeight: 500,
-                            color: COLORS.ink,
-                          }}
-                        >
-                          {cat.name}
-                        </div>
+                        {editNameId === cat.id ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 4,
+                              alignItems: "center",
+                              marginBottom: 2,
+                            }}
+                          >
+                            <input
+                              autoFocus
+                              value={nameInput}
+                              onChange={(e) => setNameInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") saveCatName(cat.id);
+                                if (e.key === "Escape") {
+                                  setEditNameId(null);
+                                  setNameInput("");
+                                }
+                              }}
+                              onBlur={() => saveCatName(cat.id)}
+                              style={{
+                                width: 130,
+                                padding: "2px 6px",
+                                border: `1px solid ${COLORS.border}`,
+                                borderRadius: 6,
+                                fontFamily: "'Cormorant Garamond', serif",
+                                fontSize: 17,
+                                fontWeight: 500,
+                                background: COLORS.white,
+                              }}
+                            />
+                            <button
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => saveCatName(cat.id)}
+                              style={{
+                                padding: "2px 7px",
+                                background: COLORS.rose,
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 6,
+                                cursor: "pointer",
+                                fontSize: 11,
+                              }}
+                            >
+                              ✓
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => {
+                              setEditNameId(cat.id);
+                              setNameInput(cat.name);
+                            }}
+                            title={t("bud_click_edit_name")}
+                            style={{
+                              fontFamily: "'Cormorant Garamond', serif",
+                              fontSize: 18,
+                              fontWeight: 500,
+                              color: COLORS.ink,
+                              cursor: "pointer",
+                              borderBottom: `1px dashed ${COLORS.border}`,
+                              display: "block",
+                              marginBottom: 4,
+                            }}
+                          >
+                            {cat.name}
+                          </div>
+                        )}
                         {editBudgetId === cat.id ? (
                           <div
                             style={{
@@ -1055,7 +1534,7 @@
                               setEditBudgetId(cat.id);
                               setBudgetCatInput(String(cat.budget));
                             }}
-                            title="Click to edit budget"
+                            title={t("bud_click_edit")}
                             style={{
                               fontFamily: "'DM Sans', sans-serif",
                               fontSize: 12,
@@ -1065,7 +1544,8 @@
                               display: "inline-block",
                             }}
                           >
-                            Budget: ${cat.budget.toLocaleString()}
+                            {t("bud_budget_prefix")}
+                            {cat.budget.toLocaleString()}
                           </div>
                         )}
                       </div>
@@ -1119,7 +1599,7 @@
                               setEditSpentId(cat.id);
                               setSpentInput(String(cat.spent));
                             }}
-                            title="Click to edit"
+                            title={t("bud_click_edit")}
                             style={{
                               fontFamily: "'DM Sans', sans-serif",
                               fontSize: 15,
@@ -1140,7 +1620,7 @@
                             color: COLORS.muted,
                           }}
                         >
-                          spent
+                          {t("bud_spent")}
                         </div>
                       </div>
                     </div>
@@ -1176,8 +1656,9 @@
                           color: COLORS.muted,
                         }}
                       >
-                        {pct}% used · $
-                        {(cat.budget - cat.spent).toLocaleString()} left
+                        {pct}% {t("bud_used")} · $
+                        {(cat.budget - cat.spent).toLocaleString()}{" "}
+                        {t("bud_left")}
                       </div>
                       {catExpenses.length > 0 && (
                         <button
@@ -1199,8 +1680,8 @@
                           }}
                         >
                           {isExpanded
-                            ? "Hide"
-                            : `${catExpenses.length} expense${catExpenses.length !== 1 ? "s" : ""}`}
+                            ? t("hide")
+                            : `${catExpenses.length} ${t(catExpenses.length !== 1 ? "expenses" : "expense")}`}
                         </button>
                       )}
                     </div>
@@ -1281,7 +1762,7 @@
                                     ),
                                   }));
                                 }}
-                                title="Delete expense"
+                                title={t("delete")}
                                 style={{
                                   background: "none",
                                   border: "none",
@@ -1316,7 +1797,7 @@
                   fontWeight: 500,
                 }}
               >
-                Add an Expense
+                {t("bud_add_expense")}
               </div>
               <div
                 style={{
@@ -1335,14 +1816,14 @@
                       marginBottom: 6,
                     }}
                   >
-                    Description
+                    {t("bud_desc")}
                   </div>
                   <input
                     value={newExpense.name}
                     onChange={(e) =>
                       setNewExpense((n) => ({ ...n, name: e.target.value }))
                     }
-                    placeholder="e.g. Deposit for florist"
+                    placeholder={t("bud_desc_ph")}
                     style={{
                       width: "100%",
                       padding: "8px 12px",
@@ -1364,7 +1845,7 @@
                       marginBottom: 6,
                     }}
                   >
-                    Category
+                    {t("bud_category")}
                   </div>
                   <select
                     value={newExpense.category}
@@ -1397,7 +1878,7 @@
                       marginBottom: 6,
                     }}
                   >
-                    Amount ($)
+                    {t("bud_amount")}
                   </div>
                   <input
                     value={newExpense.amount}
@@ -1433,7 +1914,7 @@
                     whiteSpace: "nowrap",
                   }}
                 >
-                  + Add
+                  {t("add")}
                 </button>
               </div>
             </Card>
@@ -1443,6 +1924,7 @@
 
       // Venues component
       function Venues({ venues, setVenues }) {
+        const { t } = useContext(LangContext);
         const [showTrash, setShowTrash] = useState(false);
         const [showAdd, setShowAdd] = useState(false);
         const [newVenue, setNewVenue] = useState({
@@ -1532,9 +2014,7 @@
 
         return (
           <div>
-            <SectionTitle sub="Compare and select the perfect setting for your ceremony and reception">
-              Venue Options
-            </SectionTitle>
+            <SectionTitle sub={t("ven_sub")}>{t("ven_title")}</SectionTitle>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <button
                 onClick={() => setShowAdd((s) => !s)}
@@ -1550,7 +2030,7 @@
                   fontWeight: 500,
                 }}
               >
-                + Add Venue
+                {t("ven_add")}
               </button>
               <TrashButton
                 count={deleted.length}
@@ -1587,7 +2067,7 @@
                     fontWeight: 600,
                   }}
                 >
-                  New Venue
+                  {t("ven_new")}
                 </div>
                 <div
                   style={{
@@ -1598,40 +2078,40 @@
                   }}
                 >
                   <div>
-                    <div style={lbl}>Name</div>
+                    <div style={lbl}>{t("ven_name")}</div>
                     <input
                       value={newVenue.name}
                       onChange={(e) =>
                         setNewVenue((n) => ({ ...n, name: e.target.value }))
                       }
-                      placeholder="Venue name"
+                      placeholder={t("ven_name_ph")}
                       style={inp}
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Location</div>
+                    <div style={lbl}>{t("ven_location")}</div>
                     <input
                       value={newVenue.location}
                       onChange={(e) =>
                         setNewVenue((n) => ({ ...n, location: e.target.value }))
                       }
-                      placeholder="City / Region"
+                      placeholder={t("ven_location_ph")}
                       style={inp}
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Style</div>
+                    <div style={lbl}>{t("ven_style")}</div>
                     <input
                       value={newVenue.style}
                       onChange={(e) =>
                         setNewVenue((n) => ({ ...n, style: e.target.value }))
                       }
-                      placeholder="e.g. Garden"
+                      placeholder={t("ven_style_ph")}
                       style={inp}
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Emoji</div>
+                    <div style={lbl}>{t("ven_emoji")}</div>
                     <input
                       value={newVenue.image}
                       onChange={(e) =>
@@ -1652,7 +2132,7 @@
                   }}
                 >
                   <div>
-                    <div style={lbl}>Price ($)</div>
+                    <div style={lbl}>{t("ven_price")}</div>
                     <input
                       value={newVenue.price}
                       onChange={(e) =>
@@ -1664,19 +2144,19 @@
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Capacity</div>
+                    <div style={lbl}>{t("ven_capacity")}</div>
                     <input
                       value={newVenue.capacity}
                       onChange={(e) =>
                         setNewVenue((n) => ({ ...n, capacity: e.target.value }))
                       }
-                      placeholder="guests"
+                      placeholder={t("ven_guests_ph")}
                       type="number"
                       style={inp}
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Rating</div>
+                    <div style={lbl}>{t("ven_rating")}</div>
                     <input
                       value={newVenue.rating}
                       onChange={(e) =>
@@ -1703,17 +2183,17 @@
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Save Venue
+                    {t("ven_save")}
                   </button>
                 </div>
                 <div>
-                  <div style={lbl}>Notes</div>
+                  <div style={lbl}>{t("ven_notes")}</div>
                   <input
                     value={newVenue.notes}
                     onChange={(e) =>
                       setNewVenue((n) => ({ ...n, notes: e.target.value }))
                     }
-                    placeholder="Additional notes…"
+                    placeholder={t("ven_notes_ph")}
                     style={inp}
                   />
                 </div>
@@ -1735,7 +2215,7 @@
                 >
                   {v.selected && (
                     <div style={{ position: "absolute", top: 16, right: 16 }}>
-                      <Badge>✓ Selected</Badge>
+                      <Badge>{t("ven_selected")}</Badge>
                     </div>
                   )}
                   <div
@@ -1788,7 +2268,7 @@
                           {v.style}
                         </Badge>
                         <Badge color={COLORS.sage} bg={COLORS.sageLight}>
-                          Up to {v.capacity} guests
+                          {t("ven_up_to", { n: v.capacity })}
                         </Badge>
                         <Badge color={COLORS.gold} bg={COLORS.goldLight}>
                           ⭐ {v.rating}
@@ -1843,12 +2323,12 @@
                                 fontSize: 14,
                               }}
                             >
-                              Select This Venue
+                              {t("ven_select")}
                             </button>
                           )}
                           <button
                             onClick={() => deleteVenue(v.id)}
-                            title="Delete venue"
+                            title={t("ven_delete")}
                             style={{
                               background: "none",
                               border: `1px solid ${COLORS.border}`,
@@ -1874,6 +2354,7 @@
 
       // Photographers component
       function Photographers({ photographers, setPhotographers }) {
+        const { t } = useContext(LangContext);
         const [showTrash, setShowTrash] = useState(false);
         const [showAdd, setShowAdd] = useState(false);
         const [newPhoto, setNewPhoto] = useState({
@@ -1969,9 +2450,7 @@
 
         return (
           <div>
-            <SectionTitle sub="Choose your artist to capture every magical moment">
-              Photographers
-            </SectionTitle>
+            <SectionTitle sub={t("pho_sub")}>{t("pho_title")}</SectionTitle>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <button
                 onClick={() => setShowAdd((s) => !s)}
@@ -1987,7 +2466,7 @@
                   fontWeight: 500,
                 }}
               >
-                + Add Photographer
+                {t("pho_add")}
               </button>
               <TrashButton
                 count={deleted.length}
@@ -2022,7 +2501,7 @@
                     fontWeight: 600,
                   }}
                 >
-                  New Photographer
+                  {t("pho_new")}
                 </div>
                 <div
                   style={{
@@ -2033,29 +2512,29 @@
                   }}
                 >
                   <div>
-                    <div style={lbl}>Name</div>
+                    <div style={lbl}>{t("pho_name")}</div>
                     <input
                       value={newPhoto.name}
                       onChange={(e) =>
                         setNewPhoto((n) => ({ ...n, name: e.target.value }))
                       }
-                      placeholder="Photographer name"
+                      placeholder={t("pho_name_ph")}
                       style={inp}
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Style</div>
+                    <div style={lbl}>{t("pho_style")}</div>
                     <input
                       value={newPhoto.style}
                       onChange={(e) =>
                         setNewPhoto((n) => ({ ...n, style: e.target.value }))
                       }
-                      placeholder="e.g. Candid"
+                      placeholder={t("pho_style_ph")}
                       style={inp}
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Price ($)</div>
+                    <div style={lbl}>{t("pho_price")}</div>
                     <input
                       value={newPhoto.price}
                       onChange={(e) =>
@@ -2067,7 +2546,7 @@
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Emoji</div>
+                    <div style={lbl}>{t("ven_emoji")}</div>
                     <input
                       value={newPhoto.image}
                       onChange={(e) =>
@@ -2087,19 +2566,19 @@
                   }}
                 >
                   <div>
-                    <div style={lbl}>Hours</div>
+                    <div style={lbl}>{t("pho_hours")}</div>
                     <input
                       value={newPhoto.hours}
                       onChange={(e) =>
                         setNewPhoto((n) => ({ ...n, hours: e.target.value }))
                       }
-                      placeholder="hrs"
+                      placeholder={t("pho_hours_ph")}
                       type="number"
                       style={inp}
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Rating</div>
+                    <div style={lbl}>{t("pho_rating")}</div>
                     <input
                       value={newPhoto.rating}
                       onChange={(e) =>
@@ -2112,7 +2591,7 @@
                     />
                   </div>
                   <div>
-                    <div style={lbl}>Specialties (comma-separated)</div>
+                    <div style={lbl}>{t("pho_specialties")}</div>
                     <input
                       value={newPhoto.specialties}
                       onChange={(e) =>
@@ -2121,7 +2600,7 @@
                           specialties: e.target.value,
                         }))
                       }
-                      placeholder="e.g. Portraits, Drone"
+                      placeholder={t("pho_specialties_ph")}
                       style={inp}
                     />
                   </div>
@@ -2140,7 +2619,7 @@
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Save
+                    {t("pho_save")}
                   </button>
                 </div>
               </Card>
@@ -2165,7 +2644,7 @@
                 >
                   {p.selected && (
                     <div style={{ position: "absolute", top: 12, right: 12 }}>
-                      <Badge>✓ Chosen</Badge>
+                      <Badge>{t("pho_chosen")}</Badge>
                     </div>
                   )}
                   <div style={{ textAlign: "center", marginBottom: 12 }}>
@@ -2214,7 +2693,7 @@
                           color: COLORS.muted,
                         }}
                       >
-                        Package
+                        {t("pho_package")}
                       </span>
                       <span
                         style={{
@@ -2241,7 +2720,7 @@
                           color: COLORS.muted,
                         }}
                       >
-                        Hours
+                        {t("pho_hours")}
                       </span>
                       <span
                         style={{
@@ -2251,7 +2730,7 @@
                           color: COLORS.ink,
                         }}
                       >
-                        {p.hours} hrs
+                        {p.hours} {t("pho_hours_ph")}
                       </span>
                     </div>
                     <div
@@ -2267,7 +2746,7 @@
                           color: COLORS.muted,
                         }}
                       >
-                        Rating
+                        {t("pho_rating")}
                       </span>
                       <span
                         style={{
@@ -2312,11 +2791,11 @@
                         fontSize: 14,
                       }}
                     >
-                      {p.selected ? "✓ Selected" : "Select"}
+                      {p.selected ? t("pho_selected_badge") : t("pho_select")}
                     </button>
                     <button
                       onClick={() => deletePhotographer(p.id)}
-                      title="Delete"
+                      title={t("pho_delete")}
                       style={{
                         background: "none",
                         border: `1px solid ${COLORS.border}`,
@@ -2339,6 +2818,7 @@
 
       // Guests component
       function Guests({ guests, setGuests }) {
+        const { t } = useContext(LangContext);
         const [filter, setFilter] = useState("all");
         const [search, setSearch] = useState("");
         const [showAdd, setShowAdd] = useState(false);
@@ -2419,9 +2899,7 @@
 
         return (
           <div>
-            <SectionTitle sub="Manage your guest list and track RSVPs">
-              Guest List
-            </SectionTitle>
+            <SectionTitle sub={t("gue_sub")}>{t("gue_title")}</SectionTitle>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <TrashButton
                 count={deletedGuests.length}
@@ -2446,18 +2924,22 @@
               }}
             >
               <StatCard
-                label="Total Invited"
+                label={t("gue_total")}
                 value={activeGuests.length}
                 accent={COLORS.ink}
               />
               <StatCard
-                label="Confirmed"
+                label={t("gue_confirmed")}
                 value={confirmed}
                 accent={COLORS.sage}
               />
-              <StatCard label="Pending" value={pending} accent={COLORS.gold} />
               <StatCard
-                label="Declined"
+                label={t("gue_pending")}
+                value={pending}
+                accent={COLORS.gold}
+              />
+              <StatCard
+                label={t("gue_declined")}
                 value={declined}
                 accent={COLORS.rose}
               />
@@ -2475,7 +2957,7 @@
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search guests…"
+                placeholder={t("gue_search")}
                 style={{
                   padding: "8px 14px",
                   border: `1px solid ${COLORS.border}`,
@@ -2504,7 +2986,14 @@
                       textTransform: "capitalize",
                     }}
                   >
-                    {f}
+                    {
+                      {
+                        all: t("gue_filter_all"),
+                        confirmed: t("rsvp_confirmed"),
+                        pending: t("rsvp_pending"),
+                        declined: t("rsvp_declined"),
+                      }[f]
+                    }
                   </button>
                 ))}
               </div>
@@ -2521,7 +3010,7 @@
                   fontSize: 14,
                 }}
               >
-                + Add Guest
+                {t("gue_add")}
               </button>
             </div>
 
@@ -2542,7 +3031,7 @@
                     marginBottom: 12,
                   }}
                 >
-                  New Guest
+                  {t("gue_new")}
                 </div>
                 <div
                   style={{
@@ -2557,7 +3046,7 @@
                     onChange={(e) =>
                       setNewGuest((g) => ({ ...g, name: e.target.value }))
                     }
-                    placeholder="Full name (or couple name)"
+                    placeholder={t("gue_name_ph")}
                     style={{
                       padding: "7px 12px",
                       border: `1px solid ${COLORS.border}`,
@@ -2581,15 +3070,15 @@
                       background: COLORS.white,
                     }}
                   >
-                    {[
-                      "Family",
-                      "Friend",
-                      "Colleague",
-                      "Partner's Family",
-                      "Partner's Friend",
-                    ].map((gr) => (
-                      <option key={gr}>{gr}</option>
-                    ))}
+                    <option value="Family">{t("grp_family")}</option>
+                    <option value="Friend">{t("grp_friend")}</option>
+                    <option value="Colleague">{t("grp_colleague")}</option>
+                    <option value="Partner's Family">
+                      {t("grp_partners_family")}
+                    </option>
+                    <option value="Partner's Friend">
+                      {t("grp_partners_friend")}
+                    </option>
                   </select>
                   <select
                     value={newGuest.dietary}
@@ -2605,17 +3094,13 @@
                       background: COLORS.white,
                     }}
                   >
-                    {[
-                      "None",
-                      "Vegetarian",
-                      "Vegan",
-                      "Gluten-free",
-                      "Low-sodium",
-                      "Kosher",
-                      "Halal",
-                    ].map((d) => (
-                      <option key={d}>{d}</option>
-                    ))}
+                    <option value="None">{t("diet_none")}</option>
+                    <option value="Vegetarian">{t("diet_vegetarian")}</option>
+                    <option value="Vegan">{t("diet_vegan")}</option>
+                    <option value="Gluten-free">{t("diet_gluten")}</option>
+                    <option value="Low-sodium">{t("diet_sodium")}</option>
+                    <option value="Kosher">{t("diet_kosher")}</option>
+                    <option value="Halal">{t("diet_halal")}</option>
                   </select>
                   <button
                     onClick={addGuest}
@@ -2630,7 +3115,7 @@
                       fontSize: 13,
                     }}
                   >
-                    Add
+                    {t("add")}
                   </button>
                 </div>
               </Card>
@@ -2640,26 +3125,31 @@
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: COLORS.champagne }}>
-                    {["Name", "Group", "RSVP", "Dietary", "Table", ""].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          style={{
-                            padding: "10px 16px",
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 12,
-                            fontWeight: 500,
-                            color: COLORS.muted,
-                            textAlign: "left",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.05em",
-                            borderBottom: `1px solid ${COLORS.border}`,
-                          }}
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
+                    {[
+                      t("gue_col_name"),
+                      t("gue_col_group"),
+                      t("gue_col_rsvp"),
+                      t("gue_col_dietary"),
+                      t("gue_col_table"),
+                      "",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: "10px 16px",
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          fontWeight: 500,
+                          color: COLORS.muted,
+                          textAlign: "left",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          borderBottom: `1px solid ${COLORS.border}`,
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -2712,9 +3202,11 @@
                             cursor: "pointer",
                           }}
                         >
-                          <option value="confirmed">Confirmed</option>
-                          <option value="pending">Pending</option>
-                          <option value="declined">Declined</option>
+                          <option value="confirmed">
+                            {t("rsvp_confirmed")}
+                          </option>
+                          <option value="pending">{t("rsvp_pending")}</option>
+                          <option value="declined">{t("rsvp_declined")}</option>
                         </select>
                       </td>
                       <td
@@ -2741,7 +3233,7 @@
                       <td style={{ padding: "10px 16px" }}>
                         <button
                           onClick={() => deleteGuest(g.id)}
-                          title="Delete guest"
+                          title={t("delete")}
                           style={{
                             background: "none",
                             border: "none",
@@ -2768,7 +3260,7 @@
                     color: COLORS.muted,
                   }}
                 >
-                  No guests found
+                  {t("gue_not_found")}
                 </div>
               )}
             </Card>
@@ -2778,6 +3270,7 @@
 
       // Tables component
       function Tables({ guests, setGuests, tables, setTables }) {
+        const { t } = useContext(LangContext);
         const [newTable, setNewTable] = useState({ name: "", capacity: 8 });
         const [assignGuest, setAssignGuest] = useState({
           guestId: "",
@@ -2828,9 +3321,7 @@
 
         return (
           <div>
-            <SectionTitle sub="Arrange your guests and design your reception seating plan">
-              Seating & Tables
-            </SectionTitle>
+            <SectionTitle sub={t("tbl_sub")}>{t("tbl_title")}</SectionTitle>
 
             <div
               style={{
@@ -2857,7 +3348,7 @@
                     fontWeight: 500,
                   }}
                 >
-                  Assign Guest to Table
+                  {t("tbl_assign_title")}
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <select
@@ -2875,7 +3366,7 @@
                       background: COLORS.white,
                     }}
                   >
-                    <option value="">Select guest…</option>
+                    <option value="">{t("tbl_guest_ph")}</option>
                     {unassigned.map((g) => (
                       <option key={g.id} value={g.id}>
                         {g.name}
@@ -2897,7 +3388,7 @@
                       background: COLORS.white,
                     }}
                   >
-                    <option value="">Select table…</option>
+                    <option value="">{t("tbl_table_ph")}</option>
                     {tables.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.name}
@@ -2917,7 +3408,7 @@
                       fontSize: 13,
                     }}
                   >
-                    Assign
+                    {t("tbl_assign")}
                   </button>
                 </div>
                 {unassigned.length > 0 && (
@@ -2929,7 +3420,7 @@
                       marginTop: 10,
                     }}
                   >
-                    {unassigned.length} guests not yet seated
+                    {t("tbl_not_seated", { n: unassigned.length })}
                   </div>
                 )}
               </Card>
@@ -2951,15 +3442,15 @@
                     fontWeight: 500,
                   }}
                 >
-                  Add New Table
+                  {t("tbl_new")}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <input
                     value={newTable.name}
                     onChange={(e) =>
-                      setNewTable((t) => ({ ...t, name: e.target.value }))
+                      setNewTable((tbl) => ({ ...tbl, name: e.target.value }))
                     }
-                    placeholder="Table name"
+                    placeholder={t("tbl_name_ph")}
                     style={{
                       flex: 2,
                       padding: "8px 12px",
@@ -2973,10 +3464,13 @@
                   <input
                     value={newTable.capacity}
                     onChange={(e) =>
-                      setNewTable((t) => ({ ...t, capacity: e.target.value }))
+                      setNewTable((tbl) => ({
+                        ...tbl,
+                        capacity: e.target.value,
+                      }))
                     }
                     type="number"
-                    placeholder="Seats"
+                    placeholder={t("tbl_seats")}
                     style={{
                       flex: 1,
                       padding: "8px 12px",
@@ -3000,7 +3494,7 @@
                       fontSize: 13,
                     }}
                   >
-                    Add
+                    {t("add")}
                   </button>
                 </div>
               </Card>
@@ -3013,13 +3507,13 @@
                 gap: 16,
               }}
             >
-              {tables.map((t) => {
-                const tableGuests = guests.filter((g) => g.table === t.id);
+              {tables.map((tbl) => {
+                const tableGuests = guests.filter((g) => g.table === tbl.id);
                 const occupancy = tableGuests.length;
-                const full = occupancy >= t.capacity;
+                const full = occupancy >= tbl.capacity;
                 return (
                   <Card
-                    key={t.id}
+                    key={tbl.id}
                     style={{
                       border: full
                         ? `1.5px solid ${COLORS.rose}`
@@ -3043,7 +3537,7 @@
                           margin: 0,
                         }}
                       >
-                        {t.name}
+                        {tbl.name}
                       </h3>
                       <div
                         style={{
@@ -3060,11 +3554,11 @@
                             color: full ? COLORS.rose : COLORS.sage,
                           }}
                         >
-                          {occupancy}/{t.capacity}
+                          {occupancy}/{tbl.capacity}
                         </div>
                         <button
-                          onClick={() => deleteTable(t.id)}
-                          title="Delete table"
+                          onClick={() => deleteTable(tbl.id)}
+                          title={t("tbl_delete")}
                           style={{
                             background: "none",
                             border: "none",
@@ -3088,7 +3582,7 @@
                     >
                       <div
                         style={{
-                          width: `${Math.round((occupancy / t.capacity) * 100)}%`,
+                          width: `${Math.round((occupancy / tbl.capacity) * 100)}%`,
                           background: full ? COLORS.rose : COLORS.sage,
                           height: 6,
                           borderRadius: 4,
@@ -3149,7 +3643,7 @@
                           padding: "8px 0",
                         }}
                       >
-                        No guests seated yet
+                        {t("tbl_no_seated")}
                       </div>
                     )}
                   </Card>
@@ -3161,44 +3655,76 @@
       }
 
       // Checklist component
-      function Checklist({ checklist, setChecklist }) {
+      function Checklist({
+        checklist,
+        setChecklist,
+        checklistCategories,
+        setChecklistCategories,
+      }) {
+        const { t } = useContext(LangContext);
         const [newTask, setNewTask] = useState({
           task: "",
-          category: "Planning",
+          category: checklistCategories[0] || "Planning",
           priority: "medium",
         });
         const [filterCat, setFilterCat] = useState("all");
         const [showTrash, setShowTrash] = useState(false);
+        const [showAddCat, setShowAddCat] = useState(false);
+        const [newCatName, setNewCatName] = useState("");
 
-        const activeChecklist = checklist.filter((t) => !t.deleted);
-        const deletedTasks = checklist.filter((t) => t.deleted);
-        const categories = [...new Set(activeChecklist.map((t) => t.category))];
+        const activeChecklist = checklist.filter((item) => !item.deleted);
+        const deletedTasks = checklist.filter((item) => item.deleted);
+
+        // Merge saved categories with any categories found in existing tasks (for backward compat)
+        const taskCats = [
+          ...new Set(activeChecklist.map((item) => item.category)),
+        ];
+        const categories = [
+          ...new Set([...(checklistCategories || []), ...taskCats]),
+        ];
+
+        const addCategory = () => {
+          const name = newCatName.trim();
+          if (!name || categories.includes(name)) {
+            setNewCatName("");
+            setShowAddCat(false);
+            return;
+          }
+          setChecklistCategories([...(checklistCategories || []), name]);
+          setNewCatName("");
+          setShowAddCat(false);
+        };
+
+        const deleteCategory = (name) => {
+          const inUse = activeChecklist.some((item) => item.category === name);
+          if (inUse) return;
+          setChecklistCategories(
+            (checklistCategories || []).filter((c) => c !== name),
+          );
+          if (filterCat === name) setFilterCat("all");
+        };
 
         const toggle = (id) =>
           setChecklist((cl) =>
-            cl.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+            cl.map((item) =>
+              item.id === id ? { ...item, done: !item.done } : item,
+            ),
           );
 
-        const deleteTask = async (id) => {
-          try {
-            await apiPatch("checklist", id, { deleted: true });
-            setChecklist((cl) =>
-              cl.map((t) => (t.id === id ? { ...t, deleted: true } : t)),
-            );
-          } catch (e) {
-            console.warn("Failed to delete task", e);
-          }
+        const deleteTask = (id) => {
+          setChecklist((cl) =>
+            cl.map((item) =>
+              item.id === id ? { ...item, deleted: true } : item,
+            ),
+          );
         };
 
-        const restoreTask = async (id) => {
-          try {
-            await apiPatch("checklist", id, { deleted: false });
-            setChecklist((cl) =>
-              cl.map((t) => (t.id === id ? { ...t, deleted: false } : t)),
-            );
-          } catch (e) {
-            console.warn("Failed to restore task", e);
-          }
+        const restoreTask = (id) => {
+          setChecklist((cl) =>
+            cl.map((item) =>
+              item.id === id ? { ...item, deleted: false } : item,
+            ),
+          );
         };
 
         const addTask = () => {
@@ -3213,13 +3739,17 @@
               deleted: false,
             },
           ]);
-          setNewTask({ task: "", category: "Planning", priority: "medium" });
+          setNewTask({
+            task: "",
+            category: newTask.category,
+            priority: "medium",
+          });
         };
 
         const filtered = activeChecklist.filter(
-          (t) => filterCat === "all" || t.category === filterCat,
+          (item) => filterCat === "all" || item.category === filterCat,
         );
-        const done = activeChecklist.filter((t) => t.done).length;
+        const done = activeChecklist.filter((item) => item.done).length;
 
         const priorityColors = {
           high: { color: "#B05050", bg: "#FAE8E8" },
@@ -3229,9 +3759,7 @@
 
         return (
           <div>
-            <SectionTitle sub="Every detail for your perfect day, tracked and organised">
-              Planning Checklist
-            </SectionTitle>
+            <SectionTitle sub={t("chk_sub")}>{t("chk_title")}</SectionTitle>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <TrashButton
                 count={deletedTasks.length}
@@ -3243,7 +3771,7 @@
               <TrashPanel
                 items={deletedTasks}
                 onRestore={restoreTask}
-                renderItem={(t) => `${t.task} · ${t.category}`}
+                renderItem={(item) => `${item.task} · ${item.category}`}
               />
             )}
 
@@ -3256,18 +3784,18 @@
               }}
             >
               <StatCard
-                label="Completed"
+                label={t("chk_completed")}
                 value={done}
-                sub={`of ${activeChecklist.length} tasks`}
+                sub={t("chk_of_tasks", { n: activeChecklist.length })}
                 accent={COLORS.sage}
               />
               <StatCard
-                label="Remaining"
+                label={t("chk_remaining")}
                 value={activeChecklist.length - done}
                 accent={COLORS.rose}
               />
               <StatCard
-                label="Progress"
+                label={t("chk_progress")}
                 value={`${Math.round((done / Math.max(1, activeChecklist.length)) * 100)}%`}
                 accent={COLORS.gold}
               />
@@ -3282,25 +3810,135 @@
                 alignItems: "center",
               }}
             >
-              {["all", ...categories].map((cat) => (
+              {["all", ...categories].map((cat) => {
+                const taskCount =
+                  cat === "all"
+                    ? 0
+                    : activeChecklist.filter((item) => item.category === cat)
+                        .length;
+                const canDelete = cat !== "all" && taskCount === 0;
+                return (
+                  <div
+                    key={cat}
+                    style={{ display: "flex", alignItems: "stretch", gap: 0 }}
+                  >
+                    <button
+                      onClick={() => setFilterCat(cat)}
+                      style={{
+                        padding: canDelete ? "5px 8px 5px 12px" : "5px 12px",
+                        background:
+                          filterCat === cat ? COLORS.rose : "transparent",
+                        color: filterCat === cat ? "#fff" : COLORS.muted,
+                        border: `1px solid ${filterCat === cat ? COLORS.rose : COLORS.border}`,
+                        borderRadius: canDelete ? "20px 0 0 20px" : 20,
+                        cursor: "pointer",
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 12,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {cat === "all" ? t("chk_filter_all") : cat}
+                    </button>
+                    {canDelete && (
+                      <button
+                        onClick={() => deleteCategory(cat)}
+                        title={t("chk_del_cat")}
+                        style={{
+                          padding: "0 8px",
+                          background:
+                            filterCat === cat ? COLORS.rose : "transparent",
+                          color: filterCat === cat ? "#fff" : COLORS.muted,
+                          border: `1px solid ${filterCat === cat ? COLORS.rose : COLORS.border}`,
+                          borderLeft: "none",
+                          borderRadius: "0 20px 20px 0",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {showAddCat ? (
+                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  <input
+                    autoFocus
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addCategory();
+                      if (e.key === "Escape") {
+                        setShowAddCat(false);
+                        setNewCatName("");
+                      }
+                    }}
+                    placeholder={t("chk_cat_ph")}
+                    style={{
+                      padding: "4px 10px",
+                      border: `1px solid ${COLORS.roseMid}`,
+                      borderRadius: 20,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      background: COLORS.white,
+                      width: 140,
+                    }}
+                  />
+                  <button
+                    onClick={addCategory}
+                    style={{
+                      padding: "4px 10px",
+                      background: COLORS.rose,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 20,
+                      cursor: "pointer",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                    }}
+                  >
+                    ✓
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAddCat(false);
+                      setNewCatName("");
+                    }}
+                    style={{
+                      padding: "4px 10px",
+                      background: "transparent",
+                      color: COLORS.muted,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 20,
+                      cursor: "pointer",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
                 <button
-                  key={cat}
-                  onClick={() => setFilterCat(cat)}
+                  onClick={() => setShowAddCat(true)}
                   style={{
                     padding: "5px 12px",
-                    background: filterCat === cat ? COLORS.rose : "transparent",
-                    color: filterCat === cat ? "#fff" : COLORS.muted,
-                    border: `1px solid ${filterCat === cat ? COLORS.rose : COLORS.border}`,
+                    background: "transparent",
+                    color: COLORS.rose,
+                    border: `1px dashed ${COLORS.roseMid}`,
                     borderRadius: 20,
                     cursor: "pointer",
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 12,
-                    textTransform: "capitalize",
+                    fontWeight: 500,
                   }}
                 >
-                  {cat}
+                  {t("chk_add_cat")}
                 </button>
-              ))}
+              )}
             </div>
 
             <Card
@@ -3322,10 +3960,10 @@
                 <input
                   value={newTask.task}
                   onChange={(e) =>
-                    setNewTask((t) => ({ ...t, task: e.target.value }))
+                    setNewTask((tk) => ({ ...tk, task: e.target.value }))
                   }
                   onKeyDown={(e) => e.key === "Enter" && addTask()}
-                  placeholder="Add a new task…"
+                  placeholder={t("chk_new_ph")}
                   style={{
                     padding: "7px 12px",
                     border: `1px solid ${COLORS.border}`,
@@ -3338,7 +3976,7 @@
                 <select
                   value={newTask.category}
                   onChange={(e) =>
-                    setNewTask((t) => ({ ...t, category: e.target.value }))
+                    setNewTask((tk) => ({ ...tk, category: e.target.value }))
                   }
                   style={{
                     padding: "7px 10px",
@@ -3350,14 +3988,15 @@
                   }}
                 >
                   {categories.map((c) => (
-                    <option key={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
-                  <option value="Planning">Planning</option>
                 </select>
                 <select
                   value={newTask.priority}
                   onChange={(e) =>
-                    setNewTask((t) => ({ ...t, priority: e.target.value }))
+                    setNewTask((tk) => ({ ...tk, priority: e.target.value }))
                   }
                   style={{
                     padding: "7px 10px",
@@ -3368,9 +4007,9 @@
                     background: COLORS.white,
                   }}
                 >
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
+                  <option value="high">{t("chk_high")}</option>
+                  <option value="medium">{t("chk_medium")}</option>
+                  <option value="low">{t("chk_low")}</option>
                 </select>
                 <button
                   onClick={addTask}
@@ -3385,27 +4024,27 @@
                     fontSize: 13,
                   }}
                 >
-                  + Add
+                  {t("chk_add")}
                 </button>
               </div>
             </Card>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {filtered.map((t) => (
+              {filtered.map((task) => (
                 <Card
-                  key={t.id}
+                  key={task.id}
                   style={{
                     padding: "12px 16px",
                     display: "flex",
                     alignItems: "center",
                     gap: 14,
-                    opacity: t.done ? 0.7 : 1,
+                    opacity: task.done ? 0.7 : 1,
                   }}
                 >
                   <input
                     type="checkbox"
-                    checked={t.done}
-                    onChange={() => toggle(t.id)}
+                    checked={task.done}
+                    onChange={() => toggle(task.id)}
                     style={{
                       width: 18,
                       height: 18,
@@ -3420,24 +4059,28 @@
                         fontFamily: "'DM Sans', sans-serif",
                         fontSize: 14,
                         color: COLORS.ink,
-                        textDecoration: t.done ? "line-through" : "none",
+                        textDecoration: task.done ? "line-through" : "none",
                       }}
                     >
-                      {t.task}
+                      {task.task}
                     </span>
                   </div>
                   <Badge
-                    color={priorityColors[t.priority].color}
-                    bg={priorityColors[t.priority].bg}
+                    color={priorityColors[task.priority].color}
+                    bg={priorityColors[task.priority].bg}
                   >
-                    {t.priority}
+                    {{
+                      high: t("chk_high"),
+                      medium: t("chk_medium"),
+                      low: t("chk_low"),
+                    }[task.priority] || task.priority}
                   </Badge>
                   <Badge color={COLORS.brown} bg={COLORS.champagne}>
-                    {t.category}
+                    {task.category}
                   </Badge>
                   <button
-                    onClick={() => deleteTask(t.id)}
-                    title="Delete task"
+                    onClick={() => deleteTask(task.id)}
+                    title={t("chk_delete")}
                     style={{
                       background: "none",
                       border: "none",
@@ -3472,6 +4115,7 @@
       };
 
       function Vendors({ vendors, setVendors, budget, setBudget }) {
+        const { t } = useContext(LangContext);
         const [showAdd, setShowAdd] = useState(false);
         const [showTrash, setShowTrash] = useState(false);
         const [newVendor, setNewVendor] = useState({
@@ -3537,9 +4181,7 @@
 
         return (
           <div>
-            <SectionTitle sub="All your wedding vendors in one place">
-              Vendors & Suppliers
-            </SectionTitle>
+            <SectionTitle sub={t("vnd_sub")}>{t("vnd_title")}</SectionTitle>
 
             <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
               <button
@@ -3555,7 +4197,7 @@
                   fontSize: 14,
                 }}
               >
-                + Add Vendor
+                {t("vnd_add")}
               </button>
               <TrashButton
                 count={deletedVendors.length}
@@ -3599,7 +4241,7 @@
                         marginBottom: 4,
                       }}
                     >
-                      Type
+                      {t("vnd_type")}
                     </div>
                     <select
                       value={newVendor.type}
@@ -3641,14 +4283,14 @@
                         marginBottom: 4,
                       }}
                     >
-                      Business Name
+                      {t("vnd_name")}
                     </div>
                     <input
                       value={newVendor.name}
                       onChange={(e) =>
                         setNewVendor((v) => ({ ...v, name: e.target.value }))
                       }
-                      placeholder="Vendor name"
+                      placeholder={t("vnd_name_ph")}
                       style={{
                         width: "100%",
                         padding: "7px 10px",
@@ -3670,14 +4312,14 @@
                         marginBottom: 4,
                       }}
                     >
-                      Email
+                      {t("vnd_email")}
                     </div>
                     <input
                       value={newVendor.contact}
                       onChange={(e) =>
                         setNewVendor((v) => ({ ...v, contact: e.target.value }))
                       }
-                      placeholder="email@vendor.com"
+                      placeholder={t("vnd_email_ph")}
                       style={{
                         width: "100%",
                         padding: "7px 10px",
@@ -3699,14 +4341,14 @@
                         marginBottom: 4,
                       }}
                     >
-                      Phone
+                      {t("vnd_phone")}
                     </div>
                     <input
                       value={newVendor.phone}
                       onChange={(e) =>
                         setNewVendor((v) => ({ ...v, phone: e.target.value }))
                       }
-                      placeholder="+1 555 0000"
+                      placeholder={t("vnd_phone_ph")}
                       style={{
                         width: "100%",
                         padding: "7px 10px",
@@ -3728,7 +4370,7 @@
                         marginBottom: 4,
                       }}
                     >
-                      Cost ($)
+                      {t("vnd_cost")}
                     </div>
                     <input
                       value={newVendor.price}
@@ -3756,7 +4398,7 @@
                     onChange={(e) =>
                       setNewVendor((v) => ({ ...v, notes: e.target.value }))
                     }
-                    placeholder="Notes…"
+                    placeholder={t("vnd_notes_ph")}
                     style={{
                       flex: 1,
                       padding: "7px 10px",
@@ -3780,7 +4422,7 @@
                       fontSize: 13,
                     }}
                   >
-                    Save Vendor
+                    {t("vnd_save")}
                   </button>
                 </div>
               </Card>
@@ -3861,7 +4503,7 @@
                     </div>
                     <button
                       onClick={() => deleteVendor(v.id)}
-                      title="Delete vendor"
+                      title={t("delete")}
                       style={{
                         background: "none",
                         border: "none",
@@ -3882,14 +4524,14 @@
       }
 
       const NAV_ITEMS = [
-        { id: "overview", label: "Overview", icon: "🌸" },
-        { id: "budget", label: "Budget", icon: "💰" },
-        { id: "guests", label: "Guests", icon: "👥" },
-        { id: "tables", label: "Seating", icon: "🪑" },
-        { id: "venues", label: "Venues", icon: "🏛" },
-        { id: "photographers", label: "Photographers", icon: "📷" },
-        { id: "vendors", label: "Vendors", icon: "🎀" },
-        { id: "checklist", label: "Checklist", icon: "✅" },
+        { id: "overview", icon: "🌸" },
+        { id: "budget", icon: "💰" },
+        { id: "guests", icon: "👥" },
+        { id: "tables", icon: "🪑" },
+        { id: "venues", icon: "🏛" },
+        { id: "photographers", icon: "📷" },
+        { id: "vendors", icon: "🎀" },
+        { id: "checklist", icon: "✅" },
       ];
 
       function WeddingPlanner() {
@@ -3900,8 +4542,17 @@
         const [guests, setGuests] = useState([]);
         const [tables, setTables] = useState([]);
         const [checklist, setChecklist] = useState([]);
+        const [checklistCategories, setChecklistCategories] = useState([]);
+        const _checklistRef = React.useRef([]);
+        const _checklistCatsRef = React.useRef([]);
         const [vendors, setVendors] = useState([]);
-        const [navItems, setNavItems] = useState(NAV_ITEMS);
+        const [navItems] = useState(NAV_ITEMS);
+        const [lang, setLangState] = useState(
+          () =>
+            (typeof localStorage !== "undefined" &&
+              localStorage.getItem("wp_lang")) ||
+            "en",
+        );
         const [meta, setMeta] = useState({
           wedding_date: "2025-09-20",
           partner1_name: "Emma",
@@ -3926,9 +4577,30 @@
                 setBudget(data.budget || { total: 0, categories: [] });
                 setGuests(data.guests || []);
                 setTables(data.tables || []);
-                setChecklist(data.checklist || []);
+                const rawCl = data.checklist;
+                const clTasks = Array.isArray(rawCl)
+                  ? rawCl
+                  : rawCl && rawCl.tasks
+                    ? rawCl.tasks
+                    : [];
+                const clCats =
+                  !Array.isArray(rawCl) && rawCl && rawCl.categories
+                    ? rawCl.categories
+                    : [];
+                _checklistRef.current = clTasks;
+                _checklistCatsRef.current = clCats;
+                setChecklist(clTasks);
+                setChecklistCategories(clCats);
                 setVendors(data.vendors || []);
-                if (data.meta) setMeta(data.meta);
+                if (data.meta) {
+                  setMeta(data.meta);
+                  if (data.meta.lang) {
+                    setLangState(data.meta.lang);
+                    try {
+                      localStorage.setItem("wp_lang", data.meta.lang);
+                    } catch (_) {}
+                  }
+                }
               })
               .catch((e) => console.warn("DataStore.loadAll failed", e));
           }
@@ -3966,10 +4638,39 @@
         const setBudgetPersist = createPersistSetter("budget", setBudget);
         const setGuestsPersist = createPersistSetter("guests", setGuests);
         const setTablesPersist = createPersistSetter("tables", setTables);
-        const setChecklistPersist = createPersistSetter(
-          "checklist",
-          setChecklist,
-        );
+        const setChecklistPersist = (updater) => {
+          setChecklist((prev) => {
+            const next =
+              typeof updater === "function" ? updater(prev) : updater;
+            _checklistRef.current = next;
+            try {
+              if (window.DataStore && window.DataStore.saveCollection)
+                window.DataStore.saveCollection("checklist", {
+                  tasks: next,
+                  categories: _checklistCatsRef.current,
+                }).catch((e) => console.warn("saveChecklist tasks failed", e));
+            } catch (e) {
+              console.warn("saveChecklist tasks failed", e);
+            }
+            return next;
+          });
+        };
+
+        const setChecklistCategoriesPersist = (newCats) => {
+          _checklistCatsRef.current = newCats;
+          setChecklistCategories(newCats);
+          try {
+            if (window.DataStore && window.DataStore.saveCollection)
+              window.DataStore.saveCollection("checklist", {
+                tasks: _checklistRef.current,
+                categories: newCats,
+              }).catch((e) =>
+                console.warn("saveChecklist categories failed", e),
+              );
+          } catch (e) {
+            console.warn("saveChecklist categories failed", e);
+          }
+        };
         const setVendorsPersist = createPersistSetter("vendors", setVendors);
 
         const saveMeta = async (newMeta) => {
@@ -3983,6 +4684,37 @@
           } catch (e) {
             console.warn("saveMeta failed", e);
           }
+        };
+
+        const setLang = (newLang) => {
+          setLangState(newLang);
+          try {
+            localStorage.setItem("wp_lang", newLang);
+          } catch (_) {}
+          const updatedMeta = { ...meta, lang: newLang };
+          saveMeta(updatedMeta);
+        };
+
+        const t = (key, vars = {}) => {
+          const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+          const str = dict[key] ?? TRANSLATIONS.en[key] ?? key;
+          return Object.entries(vars).reduce(
+            (s, [k, v]) => s.replace(`{${k}}`, String(v)),
+            str,
+          );
+        };
+
+        const ctxValue = { t, lang, setLang };
+
+        const navLabelKeys = {
+          overview: "nav_overview",
+          budget: "nav_budget",
+          venues: "nav_venues",
+          photographers: "nav_photographers",
+          guests: "nav_guests",
+          tables: "nav_seating",
+          checklist: "nav_checklist",
+          vendors: "nav_vendors",
         };
 
         const renderContent = () => {
@@ -4025,6 +4757,8 @@
                 <Checklist
                   checklist={checklist}
                   setChecklist={setChecklistPersist}
+                  checklistCategories={checklistCategories}
+                  setChecklistCategories={setChecklistCategoriesPersist}
                 />
               );
             case "vendors":
@@ -4042,284 +4776,289 @@
         };
 
         return (
-          <div
-            style={{
-              display: "flex",
-              minHeight: "100vh",
-              background: COLORS.bg,
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
+          <LangContext.Provider value={ctxValue}>
             <div
               style={{
-                width: 220,
-                background: COLORS.white,
-                borderRight: `1px solid ${COLORS.border}`,
                 display: "flex",
-                flexDirection: "column",
-                flexShrink: 0,
-                position: "sticky",
-                top: 0,
-                height: "100vh",
+                minHeight: "100vh",
+                background: COLORS.bg,
+                fontFamily: "'DM Sans', sans-serif",
               }}
             >
               <div
                 style={{
-                  padding: "28px 20px 20px",
-                  borderBottom: `1px solid ${COLORS.border}`,
+                  width: 220,
+                  background: COLORS.white,
+                  borderRight: `1px solid ${COLORS.border}`,
+                  display: "flex",
+                  flexDirection: "column",
+                  flexShrink: 0,
+                  position: "sticky",
+                  top: 0,
+                  height: "100vh",
                 }}
               >
                 <div
-                  onClick={() => {
-                    setMetaInput({ ...meta });
-                    setShowMetaEdit((s) => !s);
-                  }}
-                  title="Click to edit event details"
                   style={{
-                    cursor: "pointer",
+                    padding: "28px 20px 20px",
+                    borderBottom: `1px solid ${COLORS.border}`,
+                  }}
+                >
+                  <div
+                    onClick={() => {
+                      setMetaInput({ ...meta });
+                      setShowMetaEdit((s) => !s);
+                    }}
+                    title="Click to edit event details"
+                    style={{
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 13,
+                        color: COLORS.rose,
+                        letterSpacing: "0.15em",
+                        textTransform: "uppercase",
+                        marginBottom: 2,
+                      }}
+                    >
+                      {meta.title_type || "Reception Planner"}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 22,
+                        fontWeight: 500,
+                        color: COLORS.ink,
+                      }}
+                    >
+                      {meta.partner1_name || "Partner 1"}
+                      {meta.title_type === "Wedding Planner" && (
+                        <> & {meta.partner2_name || "Partner 2"}</>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 12,
+                        color: COLORS.muted,
+                        marginTop: 2,
+                      }}
+                    >
+                      {meta.wedding_date
+                        ? new Date(meta.wedding_date).toLocaleDateString(
+                            undefined,
+                            { year: "numeric", month: "long", day: "numeric" },
+                          )
+                        : ""}{" "}
+                      ·{" "}
+                      {Math.max(
+                        0,
+                        Math.ceil(
+                          (new Date(meta.wedding_date) - new Date()) / 86400000,
+                        ),
+                      )}{" "}
+                      {t("days")}
+                    </div>
+                  </div>
+                  {showMetaEdit && metaInput && (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                      }}
+                    >
+                      <select
+                        value={metaInput.title_type || "Reception Planner"}
+                        onChange={(e) =>
+                          setMetaInput((m) => ({
+                            ...m,
+                            title_type: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          border: `1px solid ${COLORS.border}`,
+                          borderRadius: 8,
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          background: COLORS.white,
+                        }}
+                      >
+                        <option>Wedding Planner</option>
+                        <option>Baptism Planner</option>
+                        <option>Reception Planner</option>
+                        <option>Birthday Planner</option>
+                        <option>Party Planner</option>
+                        <option>Anniversary Planner</option>
+                        <option>Event Planner</option>
+                      </select>
+                      <input
+                        value={metaInput.partner1_name || ""}
+                        onChange={(e) =>
+                          setMetaInput((m) => ({
+                            ...m,
+                            partner1_name: e.target.value,
+                          }))
+                        }
+                        placeholder="Partner 1 name"
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          border: `1px solid ${COLORS.border}`,
+                          borderRadius: 8,
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          background: COLORS.white,
+                          boxSizing: "border-box",
+                        }}
+                      />
+                      <input
+                        value={metaInput.partner2_name || ""}
+                        onChange={(e) =>
+                          setMetaInput((m) => ({
+                            ...m,
+                            partner2_name: e.target.value,
+                          }))
+                        }
+                        placeholder="Partner 2 name"
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          border: `1px solid ${COLORS.border}`,
+                          borderRadius: 8,
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          background: COLORS.white,
+                          boxSizing: "border-box",
+                        }}
+                      />
+                      <input
+                        type="date"
+                        value={metaInput.wedding_date || ""}
+                        onChange={(e) =>
+                          setMetaInput((m) => ({
+                            ...m,
+                            wedding_date: e.target.value,
+                          }))
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          border: `1px solid ${COLORS.border}`,
+                          borderRadius: 8,
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          background: COLORS.white,
+                          boxSizing: "border-box",
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          saveMeta(metaInput);
+                          setShowMetaEdit(false);
+                        }}
+                        style={{
+                          padding: "6px 0",
+                          background: COLORS.rose,
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {t("save")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <nav style={{ padding: "12px 12px", flex: 1 }}>
+                  {navItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        width: "100%",
+                        padding: "10px 12px",
+                        background:
+                          activeTab === item.id
+                            ? COLORS.roseLight
+                            : "transparent",
+                        border: "none",
+                        borderRadius: 10,
+                        cursor: "pointer",
+                        marginBottom: 2,
+                        textAlign: "left",
+                        color:
+                          activeTab === item.id ? COLORS.rose : COLORS.muted,
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 14,
+                        fontWeight: activeTab === item.id ? 500 : 400,
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <span style={{ fontSize: 16 }}>{item.icon}</span>
+                      {navLabelKeys[item.id]
+                        ? t(navLabelKeys[item.id])
+                        : item.label}
+                    </button>
+                  ))}
+                </nav>
+                <div
+                  style={{
+                    padding: "16px 20px",
+                    borderTop: `1px solid ${COLORS.border}`,
                   }}
                 >
                   <div
                     style={{
                       fontFamily: "'Cormorant Garamond', serif",
                       fontSize: 13,
-                      color: COLORS.rose,
-                      letterSpacing: "0.15em",
-                      textTransform: "uppercase",
-                      marginBottom: 2,
+                      color: COLORS.muted,
+                      fontStyle: "italic",
+                      textAlign: "center",
                     }}
                   >
-                    {meta.title_type || "Reception Planner"}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: 22,
-                      fontWeight: 500,
-                      color: COLORS.ink,
-                    }}
-                  >
-                    {meta.partner1_name || "Partner 1"}
-                    {meta.title_type === "Wedding Planner" && (
-                      <> & {meta.partner2_name || "Partner 2"}</>
-                    )}
+                    {t("app_tagline")}
                   </div>
                   <div
                     style={{
                       fontFamily: "'DM Sans', sans-serif",
-                      fontSize: 12,
-                      color: COLORS.muted,
-                      marginTop: 2,
+                      fontSize: 10,
+                      color: COLORS.border,
+                      textAlign: "center",
+                      marginTop: 4,
+                      letterSpacing: "0.06em",
                     }}
                   >
-                    {meta.wedding_date
-                      ? new Date(meta.wedding_date).toLocaleDateString(
-                          undefined,
-                          { year: "numeric", month: "long", day: "numeric" },
-                        )
-                      : ""}{" "}
-                    ·{" "}
-                    {Math.max(
-                      0,
-                      Math.ceil(
-                        (new Date(meta.wedding_date) - new Date()) / 86400000,
-                      ),
-                    )}{" "}
-                    days
+                    v1.3
                   </div>
                 </div>
-                {showMetaEdit && metaInput && (
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                    }}
-                  >
-                    <select
-                      value={metaInput.title_type || "Reception Planner"}
-                      onChange={(e) =>
-                        setMetaInput((m) => ({
-                          ...m,
-                          title_type: e.target.value,
-                        }))
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: `1px solid ${COLORS.border}`,
-                        borderRadius: 8,
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 12,
-                        background: COLORS.white,
-                      }}
-                    >
-                      <option>Wedding Planner</option>
-                      <option>Baptism Planner</option>
-                      <option>Reception Planner</option>
-                      <option>Birthday Planner</option>
-                      <option>Party Planner</option>
-                      <option>Anniversary Planner</option>
-                      <option>Event Planner</option>
-                    </select>
-                    <input
-                      value={metaInput.partner1_name || ""}
-                      onChange={(e) =>
-                        setMetaInput((m) => ({
-                          ...m,
-                          partner1_name: e.target.value,
-                        }))
-                      }
-                      placeholder="Partner 1 name"
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: `1px solid ${COLORS.border}`,
-                        borderRadius: 8,
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 12,
-                        background: COLORS.white,
-                        boxSizing: "border-box",
-                      }}
-                    />
-                    <input
-                      value={metaInput.partner2_name || ""}
-                      onChange={(e) =>
-                        setMetaInput((m) => ({
-                          ...m,
-                          partner2_name: e.target.value,
-                        }))
-                      }
-                      placeholder="Partner 2 name"
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: `1px solid ${COLORS.border}`,
-                        borderRadius: 8,
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 12,
-                        background: COLORS.white,
-                        boxSizing: "border-box",
-                      }}
-                    />
-                    <input
-                      type="date"
-                      value={metaInput.wedding_date || ""}
-                      onChange={(e) =>
-                        setMetaInput((m) => ({
-                          ...m,
-                          wedding_date: e.target.value,
-                        }))
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "6px 8px",
-                        border: `1px solid ${COLORS.border}`,
-                        borderRadius: 8,
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 12,
-                        background: COLORS.white,
-                        boxSizing: "border-box",
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        saveMeta(metaInput);
-                        setShowMetaEdit(false);
-                      }}
-                      style={{
-                        padding: "6px 0",
-                        background: COLORS.rose,
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 8,
-                        cursor: "pointer",
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 12,
-                        fontWeight: 500,
-                      }}
-                    >
-                      Save
-                    </button>
-                  </div>
-                )}
               </div>
-              <nav style={{ padding: "12px 12px", flex: 1 }}>
-                {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      width: "100%",
-                      padding: "10px 12px",
-                      background:
-                        activeTab === item.id
-                          ? COLORS.roseLight
-                          : "transparent",
-                      border: "none",
-                      borderRadius: 10,
-                      cursor: "pointer",
-                      marginBottom: 2,
-                      textAlign: "left",
-                      color: activeTab === item.id ? COLORS.rose : COLORS.muted,
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontSize: 14,
-                      fontWeight: activeTab === item.id ? 500 : 400,
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <span style={{ fontSize: 16 }}>{item.icon}</span>
-                    {item.label}
-                  </button>
-                ))}
-              </nav>
-              <div
+
+              <main
                 style={{
-                  padding: "16px 20px",
-                  borderTop: `1px solid ${COLORS.border}`,
+                  flex: 1,
+                  padding: "36px 40px",
+                  overflowY: "auto",
+                  maxWidth: 900,
                 }}
               >
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 13,
-                    color: COLORS.muted,
-                    fontStyle: "italic",
-                    textAlign: "center",
-                  }}
-                >
-                  Planning your forever
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 10,
-                    color: COLORS.border,
-                    textAlign: "center",
-                    marginTop: 4,
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  v1.3
-                </div>
-              </div>
+                {renderContent()}
+              </main>
             </div>
-
-            <main
-              style={{
-                flex: 1,
-                padding: "36px 40px",
-                overflowY: "auto",
-                maxWidth: 900,
-              }}
-            >
-              {renderContent()}
-            </main>
-          </div>
+          </LangContext.Provider>
         );
       }
 

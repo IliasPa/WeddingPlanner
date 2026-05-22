@@ -66,6 +66,13 @@
       "budget": 1700,
       "spent": 0,
       "color": "#8C7B74"
+    },
+    {
+      "id": 10,
+      "name": "Miscellaneous",
+      "budget": 1700,
+      "spent": 0,
+      "color": "#8C9B76"
     }
   ]
 }

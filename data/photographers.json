@@ -5,7 +5,7 @@
     "style": "Fine Art & Editorial",
     "price": 3800,
     "hours": 10,
-    "selected": true,
+    "selected": false,
     "rating": 5,
     "specialties": [
       "Golden Hour",
@@ -21,7 +21,7 @@
     "style": "Romantic & Timeless",
     "price": 4200,
     "hours": 12,
-    "selected": false,
+    "selected": true,
     "rating": 4.9,
     "specialties": [
       "Drone",
