@@ -216,6 +216,38 @@
           chk_add_cat: "+ Category",
           chk_cat_ph: "Category name…",
           chk_del_cat: "Delete category",
+          nav_timeline: "Timeline",
+          tl_title: "Event Timeline",
+          tl_sub:
+            "Plan your day hour by hour — click the timeline to add events",
+          tl_settings: "Settings",
+          tl_add_event: "Add Event",
+          tl_edit_event: "Edit Event",
+          tl_event_title: "Event Title",
+          tl_title_ph: "e.g. Ceremony",
+          tl_start_time: "Start Time",
+          tl_duration_min: "Duration (min)",
+          tl_category: "Category",
+          tl_category_ph: "e.g. Ceremony",
+          tl_description: "Description",
+          tl_desc_ph: "Optional details…",
+          tl_color: "Color",
+          tl_delete: "Delete Event",
+          tl_start: "Timeline Start",
+          tl_end: "Timeline End",
+          tl_interval: "Interval",
+          tl_min: "min",
+          tl_row_height: "Row Height",
+          tl_compact: "Compact",
+          tl_normal: "Normal",
+          tl_spacious: "Spacious",
+          tl_click_to_add: "Click anywhere on the timeline to add an event",
+          tl_add_day: "Add Day",
+          tl_edit_day: "Edit Day",
+          tl_delete_day: "Delete Day",
+          tl_day_name: "Day Name",
+          tl_day_name_ph: "e.g. Preparation Day",
+          tl_day_date: "Date (optional)",
         },
         el: {
           nav_overview: "Επισκόπηση",
@@ -397,6 +429,37 @@
           chk_add_cat: "+ Κατηγορία",
           chk_cat_ph: "Όνομα κατηγορίας…",
           chk_del_cat: "Διαγραφή κατηγορίας",
+          nav_timeline: "Χρονοδιάγραμμα",
+          tl_title: "Χρονοδιάγραμμα Εκδήλωσης",
+          tl_sub: "Σχεδιάστε τη μέρα σας ώρα-ώρα — κάντε κλικ για προσθήκη",
+          tl_settings: "Ρυθμίσεις",
+          tl_add_event: "Προσθήκη",
+          tl_edit_event: "Επεξεργασία",
+          tl_event_title: "Τίτλος",
+          tl_title_ph: "π.χ. Τελετή",
+          tl_start_time: "Ώρα Έναρξης",
+          tl_duration_min: "Διάρκεια (λεπτά)",
+          tl_category: "Κατηγορία",
+          tl_category_ph: "π.χ. Τελετή",
+          tl_description: "Περιγραφή",
+          tl_desc_ph: "Προαιρετικές λεπτομέρειες…",
+          tl_color: "Χρώμα",
+          tl_delete: "Διαγραφή",
+          tl_start: "Έναρξη",
+          tl_end: "Λήξη",
+          tl_interval: "Διάστημα",
+          tl_min: "λεπτ.",
+          tl_row_height: "Ύψος Σειράς",
+          tl_compact: "Συμπαγής",
+          tl_normal: "Κανονικό",
+          tl_spacious: "Άνετο",
+          tl_click_to_add: "Κάντε κλικ στο χρονοδιάγραμμα για προσθήκη",
+          tl_add_day: "Νέα Μέρα",
+          tl_edit_day: "Επεξ. Μέρας",
+          tl_delete_day: "Διαγραφή Μέρας",
+          tl_day_name: "Όνομα Μέρας",
+          tl_day_name_ph: "π.χ. Προετοιμασία",
+          tl_day_date: "Ημερομηνία (προαιρετικό)",
         },
       };
 
@@ -4523,6 +4586,1134 @@
         );
       }
 
+      const DEFAULT_TIMELINE = {
+        settings: { interval: 60 },
+        days: [{ id: "day1", name: "Wedding Day", date: "", events: [] }],
+      };
+
+      // Normalize old formats to current multi-day structure
+      function normalizeTl(tl) {
+        if (!tl) return DEFAULT_TIMELINE;
+        // Strip legacy startTime/endTime/slotHeight from settings
+        const rawSettings = tl.settings || {};
+        const settings = { interval: rawSettings.interval || 60 };
+        // Old single-events format
+        if (tl.events && !tl.days) {
+          return {
+            settings,
+            days: [
+              { id: "day1", name: "Wedding Day", date: "", events: tl.events },
+            ],
+          };
+        }
+        if (!tl.days || tl.days.length === 0) {
+          return {
+            settings,
+            days: [{ id: "day1", name: "Wedding Day", date: "", events: [] }],
+          };
+        }
+        return { ...tl, settings };
+      }
+
+      const TIMELINE_COLORS = [
+        "#B5737F",
+        "#8A9E80",
+        "#C4A055",
+        "#7B9CBF",
+        "#A07BC4",
+        "#BF7B7B",
+        "#7BBFB5",
+        "#8C7B74",
+        "#6B4C3B",
+        "#4A7B6F",
+      ];
+
+      function TimelineEventModal({
+        event,
+        isNew,
+        defaultStartTime,
+        onSave,
+        onDelete,
+        onClose,
+      }) {
+        const { t } = useContext(LangContext);
+        const [form, setForm] = useState(
+          event
+            ? { ...event }
+            : {
+                title: "",
+                startTime: defaultStartTime || "09:00",
+                duration: 60,
+                color: "#B5737F",
+                description: "",
+                category: "",
+              },
+        );
+        const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+        return (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(44,35,32,0.45)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+            }}
+            onClick={onClose}
+          >
+            <div
+              style={{
+                background: COLORS.white,
+                borderRadius: 20,
+                padding: "28px 32px",
+                width: 460,
+                maxWidth: "92vw",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 22,
+                  fontWeight: 500,
+                  color: COLORS.ink,
+                  margin: "0 0 22px",
+                }}
+              >
+                {isNew ? t("tl_add_event") : t("tl_edit_event")}
+              </h3>
+
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 14 }}
+              >
+                <label
+                  style={{
+                    fontSize: 13,
+                    color: COLORS.muted,
+                    display: "block",
+                  }}
+                >
+                  {t("tl_event_title")}
+                  <input
+                    value={form.title}
+                    onChange={(e) => set("title", e.target.value)}
+                    placeholder={t("tl_title_ph")}
+                    autoFocus
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      marginTop: 5,
+                      padding: "9px 12px",
+                      border: `1.5px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontFamily: "'DM Sans', sans-serif",
+                      boxSizing: "border-box",
+                      color: COLORS.ink,
+                    }}
+                  />
+                </label>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 12,
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: 13,
+                      color: COLORS.muted,
+                      display: "block",
+                    }}
+                  >
+                    {t("tl_start_time")}
+                    <input
+                      type="time"
+                      value={form.startTime}
+                      onChange={(e) => set("startTime", e.target.value)}
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        marginTop: 5,
+                        padding: "9px 12px",
+                        border: `1.5px solid ${COLORS.border}`,
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontFamily: "'DM Sans', sans-serif",
+                        boxSizing: "border-box",
+                        color: COLORS.ink,
+                      }}
+                    />
+                  </label>
+                  <label
+                    style={{
+                      fontSize: 13,
+                      color: COLORS.muted,
+                      display: "block",
+                    }}
+                  >
+                    {t("tl_duration_min")}
+                    <input
+                      type="number"
+                      value={form.duration}
+                      min={5}
+                      step={5}
+                      onChange={(e) =>
+                        set("duration", Math.max(5, Number(e.target.value)))
+                      }
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        marginTop: 5,
+                        padding: "9px 12px",
+                        border: `1.5px solid ${COLORS.border}`,
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontFamily: "'DM Sans', sans-serif",
+                        boxSizing: "border-box",
+                        color: COLORS.ink,
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <label
+                  style={{
+                    fontSize: 13,
+                    color: COLORS.muted,
+                    display: "block",
+                  }}
+                >
+                  {t("tl_category")}
+                  <input
+                    value={form.category}
+                    onChange={(e) => set("category", e.target.value)}
+                    placeholder={t("tl_category_ph")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      marginTop: 5,
+                      padding: "9px 12px",
+                      border: `1.5px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontFamily: "'DM Sans', sans-serif",
+                      boxSizing: "border-box",
+                      color: COLORS.ink,
+                    }}
+                  />
+                </label>
+
+                <label
+                  style={{
+                    fontSize: 13,
+                    color: COLORS.muted,
+                    display: "block",
+                  }}
+                >
+                  {t("tl_description")}
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => set("description", e.target.value)}
+                    placeholder={t("tl_desc_ph")}
+                    rows={2}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      marginTop: 5,
+                      padding: "9px 12px",
+                      border: `1.5px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontFamily: "'DM Sans', sans-serif",
+                      boxSizing: "border-box",
+                      resize: "vertical",
+                      color: COLORS.ink,
+                    }}
+                  />
+                </label>
+
+                <div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: COLORS.muted,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {t("tl_color")}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                    }}
+                  >
+                    {TIMELINE_COLORS.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => set("color", c)}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          background: c,
+                          border:
+                            form.color === c
+                              ? `3px solid ${COLORS.ink}`
+                              : "3px solid transparent",
+                          cursor: "pointer",
+                          padding: 0,
+                          transition: "border 0.12s",
+                        }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={form.color}
+                      onChange={(e) => set("color", e.target.value)}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        background: "none",
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 24,
+                }}
+              >
+                <div>
+                  {!isNew && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(t("tl_delete") + "?"))
+                          onDelete(event.id);
+                      }}
+                      style={{
+                        padding: "8px 16px",
+                        background: "transparent",
+                        color: "#c0392b",
+                        border: "1px solid #c0392b",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    >
+                      {t("tl_delete")}
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={onClose}
+                    style={{
+                      padding: "8px 16px",
+                      background: "transparent",
+                      color: COLORS.muted,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (form.title.trim()) onSave(form);
+                    }}
+                    disabled={!form.title.trim()}
+                    style={{
+                      padding: "8px 22px",
+                      background: COLORS.rose,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: form.title.trim() ? "pointer" : "not-allowed",
+                      fontSize: 13,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: 500,
+                      opacity: form.title.trim() ? 1 : 0.5,
+                    }}
+                  >
+                    {t("save")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function TimelineDayModal({
+        day,
+        isNew,
+        onSave,
+        onDelete,
+        onClose,
+        dayCount,
+      }) {
+        const { t } = useContext(LangContext);
+        const [name, setName] = useState(day ? day.name : "");
+        const [date, setDate] = useState(day ? day.date || "" : "");
+        return (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(44,35,32,0.45)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1100,
+            }}
+            onClick={onClose}
+          >
+            <div
+              style={{
+                background: COLORS.white,
+                borderRadius: 20,
+                padding: "28px 32px",
+                width: 400,
+                maxWidth: "92vw",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 22,
+                  fontWeight: 500,
+                  color: COLORS.ink,
+                  margin: "0 0 20px",
+                }}
+              >
+                {isNew ? t("tl_add_day") : t("tl_edit_day")}
+              </h3>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 14 }}
+              >
+                <label
+                  style={{
+                    fontSize: 13,
+                    color: COLORS.muted,
+                    display: "block",
+                  }}
+                >
+                  {t("tl_day_name")}
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t("tl_day_name_ph")}
+                    autoFocus
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      marginTop: 5,
+                      padding: "9px 12px",
+                      border: `1.5px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontFamily: "'DM Sans', sans-serif",
+                      boxSizing: "border-box",
+                      color: COLORS.ink,
+                    }}
+                  />
+                </label>
+                <label
+                  style={{
+                    fontSize: 13,
+                    color: COLORS.muted,
+                    display: "block",
+                  }}
+                >
+                  {t("tl_day_date")}
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      marginTop: 5,
+                      padding: "9px 12px",
+                      border: `1.5px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontFamily: "'DM Sans', sans-serif",
+                      boxSizing: "border-box",
+                      color: COLORS.ink,
+                    }}
+                  />
+                </label>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 24,
+                }}
+              >
+                <div>
+                  {!isNew && dayCount > 1 && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(t("tl_delete_day") + "?"))
+                          onDelete(day.id);
+                      }}
+                      style={{
+                        padding: "8px 16px",
+                        background: "transparent",
+                        color: "#c0392b",
+                        border: "1px solid #c0392b",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    >
+                      {t("tl_delete_day")}
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={onClose}
+                    style={{
+                      padding: "8px 16px",
+                      background: "transparent",
+                      color: COLORS.muted,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (name.trim()) onSave({ name: name.trim(), date });
+                    }}
+                    disabled={!name.trim()}
+                    style={{
+                      padding: "8px 22px",
+                      background: COLORS.rose,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: name.trim() ? "pointer" : "not-allowed",
+                      fontSize: 13,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: 500,
+                      opacity: name.trim() ? 1 : 0.5,
+                    }}
+                  >
+                    {t("save")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function Timeline({ timeline, setTimeline }) {
+        const { t } = useContext(LangContext);
+        const [modalState, setModalState] = useState(null);
+        const [dayModal, setDayModal] = useState(null);
+        const [activeDayId, setActiveDayId] = useState(null);
+
+        const SLOT_HEIGHT = 40;
+        const INTERVALS = [15, 30, 60];
+
+        const tl = normalizeTl(timeline);
+        const settings = tl.settings || { interval: 60 };
+        const days = tl.days || DEFAULT_TIMELINE.days;
+        const interval = settings.interval || 60;
+
+        const activeDay = days.find((d) => d.id === activeDayId) || days[0];
+        const events = activeDay ? activeDay.events || [] : [];
+
+        const parseTime = (ts) => {
+          const parts = (ts || "00:00").split(":");
+          return parseInt(parts[0], 10) * 60 + parseInt(parts[1] || 0, 10);
+        };
+
+        const formatTime = (minutes) => {
+          const h = Math.floor(minutes / 60) % 24;
+          const m = minutes % 60;
+          return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+        };
+
+        // Auto-range: 2h before first event start, 2h after last event end
+        const calcRange = () => {
+          if (events.length === 0) return { startMin: 8 * 60, endMin: 22 * 60 };
+          let minStart = Infinity,
+            maxEnd = -Infinity;
+          events.forEach((ev) => {
+            const s = parseTime(ev.startTime);
+            const e = s + (ev.duration || 60);
+            if (s < minStart) minStart = s;
+            if (e > maxEnd) maxEnd = e;
+          });
+          const start = Math.max(
+            0,
+            Math.floor((minStart - 120) / interval) * interval,
+          );
+          const end = Math.min(
+            24 * 60 - interval,
+            Math.ceil((maxEnd + 120) / interval) * interval,
+          );
+          return { startMin: start, endMin: end };
+        };
+
+        const { startMin, endMin } = calcRange();
+        const slots = Math.ceil((endMin - startMin) / interval);
+
+        const timeSlots = [];
+        for (let i = 0; i <= slots; i++) {
+          const min = startMin + i * interval;
+          if (min <= endMin) timeSlots.push(min);
+        }
+
+        const totalHeight = Math.max(slots * SLOT_HEIGHT, 200);
+
+        const timeToPixel = (ts) =>
+          ((parseTime(ts) - startMin) / interval) * SLOT_HEIGHT;
+        const durationToPixel = (dur) => (dur / interval) * SLOT_HEIGHT;
+
+        const updInterval = (v) =>
+          setTimeline((prev) => {
+            const p = normalizeTl(prev);
+            return { ...p, settings: { interval: v } };
+          });
+
+        const updateDayEvents = (dayId, updater) =>
+          setTimeline((prev) => {
+            const p = normalizeTl(prev);
+            return {
+              ...p,
+              days: p.days.map((d) =>
+                d.id === dayId ? { ...d, events: updater(d.events || []) } : d,
+              ),
+            };
+          });
+
+        const handleAreaClick = (e) => {
+          if (!activeDay) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const y = e.clientY - rect.top;
+          const snapped =
+            Math.round((startMin + (y / SLOT_HEIGHT) * interval) / interval) *
+            interval;
+          const clamped = Math.max(
+            startMin,
+            Math.min(endMin - interval, snapped),
+          );
+          setModalState({
+            isNew: true,
+            event: null,
+            clickedTime: formatTime(clamped),
+          });
+        };
+
+        const handleSave = (form) => {
+          if (!activeDay) return;
+          if (modalState.isNew) {
+            updateDayEvents(activeDay.id, (evs) => [
+              ...evs,
+              { ...form, id: Date.now().toString() },
+            ]);
+          } else {
+            updateDayEvents(activeDay.id, (evs) =>
+              evs.map((e) =>
+                e.id === modalState.event.id ? { ...e, ...form } : e,
+              ),
+            );
+          }
+          setModalState(null);
+        };
+
+        const handleDelete = (id) => {
+          if (!activeDay) return;
+          updateDayEvents(activeDay.id, (evs) =>
+            evs.filter((e) => e.id !== id),
+          );
+          setModalState(null);
+        };
+
+        const handleAddDay = ({ name, date }) => {
+          const id = "day" + Date.now();
+          setTimeline((prev) => {
+            const p = normalizeTl(prev);
+            return { ...p, days: [...p.days, { id, name, date, events: [] }] };
+          });
+          setActiveDayId(id);
+          setDayModal(null);
+        };
+
+        const handleEditDay = ({ name, date }) => {
+          setTimeline((prev) => {
+            const p = normalizeTl(prev);
+            return {
+              ...p,
+              days: p.days.map((d) =>
+                d.id === dayModal.day.id ? { ...d, name, date } : d,
+              ),
+            };
+          });
+          setDayModal(null);
+        };
+
+        const handleDeleteDay = (id) => {
+          setTimeline((prev) => {
+            const p = normalizeTl(prev);
+            const remaining = p.days.filter((d) => d.id !== id);
+            return {
+              ...p,
+              days: remaining.length ? remaining : DEFAULT_TIMELINE.days,
+            };
+          });
+          if (activeDayId === id) setActiveDayId(null);
+          setDayModal(null);
+        };
+
+        const sortedEvents = [...events].sort(
+          (a, b) => parseTime(a.startTime) - parseTime(b.startTime),
+        );
+
+        return (
+          <div>
+            {/* Header */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 32,
+                    fontWeight: 500,
+                    color: COLORS.ink,
+                    margin: 0,
+                  }}
+                >
+                  {t("tl_title")}
+                </h2>
+                <p
+                  style={{
+                    color: COLORS.muted,
+                    fontSize: 14,
+                    margin: "4px 0 0",
+                  }}
+                >
+                  {t("tl_sub")}
+                </p>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 3,
+                  background: COLORS.bg,
+                  borderRadius: 10,
+                  padding: 3,
+                  border: `1px solid ${COLORS.border}`,
+                  flexShrink: 0,
+                }}
+              >
+                {INTERVALS.map((iv) => (
+                  <button
+                    key={iv}
+                    onClick={() => updInterval(iv)}
+                    style={{
+                      padding: "5px 12px",
+                      background: interval === iv ? COLORS.rose : "transparent",
+                      color: interval === iv ? "#fff" : COLORS.muted,
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: interval === iv ? 500 : 400,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {iv}
+                    {t("tl_min")}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Day tabs */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 20,
+                flexWrap: "wrap",
+              }}
+            >
+              {days.map((day) => {
+                const isActive = day.id === (activeDay && activeDay.id);
+                return (
+                  <div
+                    key={day.id}
+                    style={{ display: "flex", alignItems: "stretch" }}
+                  >
+                    <button
+                      onClick={() => setActiveDayId(day.id)}
+                      style={{
+                        padding: "7px 14px",
+                        background: isActive ? COLORS.rose : COLORS.white,
+                        color: isActive ? "#fff" : COLORS.muted,
+                        border: `1.5px solid ${isActive ? COLORS.rose : COLORS.border}`,
+                        borderRight: "none",
+                        borderRadius: "10px 0 0 10px",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontWeight: isActive ? 500 : 400,
+                        transition: "all 0.15s",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      <div>{day.name}</div>
+                      {day.date && (
+                        <div style={{ fontSize: 10, opacity: 0.8 }}>
+                          {day.date}
+                        </div>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setDayModal({ isNew: false, day })}
+                      title={t("tl_edit_day")}
+                      style={{
+                        padding: "0 9px",
+                        background: isActive ? COLORS.roseMid : COLORS.bg,
+                        color: isActive ? "#fff" : COLORS.muted,
+                        border: `1.5px solid ${isActive ? COLORS.rose : COLORS.border}`,
+                        borderLeft: `1px solid ${isActive ? COLORS.roseMid : COLORS.champagneDark}`,
+                        borderRadius: "0 10px 10px 0",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      ✎
+                    </button>
+                  </div>
+                );
+              })}
+              <button
+                onClick={() => setDayModal({ isNew: true, day: null })}
+                style={{
+                  padding: "7px 14px",
+                  background: "transparent",
+                  color: COLORS.rose,
+                  border: `1.5px dashed ${COLORS.roseMid}`,
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 500,
+                }}
+              >
+                + {t("tl_add_day")}
+              </button>
+            </div>
+
+            {/* Timeline canvas */}
+            <div
+              style={{
+                display: "flex",
+                background: COLORS.white,
+                borderRadius: 16,
+                border: `1px solid ${COLORS.border}`,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: 68,
+                  flexShrink: 0,
+                  background: COLORS.champagne,
+                  borderRight: `1px solid ${COLORS.border}`,
+                  position: "relative",
+                  height: totalHeight,
+                }}
+              >
+                {timeSlots.map((min) => (
+                  <div
+                    key={min}
+                    style={{
+                      position: "absolute",
+                      top: ((min - startMin) / interval) * SLOT_HEIGHT - 8,
+                      left: 0,
+                      right: 0,
+                      textAlign: "right",
+                      paddingRight: 10,
+                      fontSize: 10,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: min % 60 === 0 ? 600 : 400,
+                      color: min % 60 === 0 ? COLORS.ink : COLORS.muted,
+                      userSelect: "none",
+                    }}
+                  >
+                    {formatTime(min)}
+                  </div>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  flex: 1,
+                  position: "relative",
+                  height: totalHeight,
+                  cursor: "crosshair",
+                }}
+                onClick={handleAreaClick}
+              >
+                {timeSlots.map((min) => (
+                  <div
+                    key={min}
+                    style={{
+                      position: "absolute",
+                      top: ((min - startMin) / interval) * SLOT_HEIGHT,
+                      left: 0,
+                      right: 0,
+                      height: min % 60 === 0 ? 1.5 : 1,
+                      background:
+                        min % 60 === 0 ? COLORS.champagneDark : COLORS.border,
+                      pointerEvents: "none",
+                    }}
+                  />
+                ))}
+
+                {events.length === 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <div style={{ textAlign: "center", opacity: 0.5 }}>
+                      <div style={{ fontSize: 36, marginBottom: 10 }}>🕐</div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: COLORS.muted,
+                          fontFamily: "'DM Sans', sans-serif",
+                        }}
+                      >
+                        {t("tl_click_to_add")}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {sortedEvents.map((event) => {
+                  const top = timeToPixel(event.startTime);
+                  const height = Math.max(
+                    durationToPixel(event.duration),
+                    SLOT_HEIGHT * 0.45,
+                  );
+                  return (
+                    <div
+                      key={event.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModalState({ isNew: false, event });
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.opacity = "0.78")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.opacity = "1")
+                      }
+                      style={{
+                        position: "absolute",
+                        top: top + 2,
+                        left: 8,
+                        right: 8,
+                        height: height - 4,
+                        background: event.color + "22",
+                        borderLeft: `3px solid ${event.color}`,
+                        borderRadius: 6,
+                        padding: "5px 8px",
+                        cursor: "pointer",
+                        overflow: "hidden",
+                        boxSizing: "border-box",
+                        transition: "opacity 0.15s",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: event.color,
+                          lineHeight: 1.3,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {event.title}
+                      </div>
+                      {height > 28 && (
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: COLORS.muted,
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {event.startTime}
+                          {event.duration >= interval
+                            ? ` · ${event.duration} ${t("tl_min")}`
+                            : ""}
+                          {event.category ? ` · ${event.category}` : ""}
+                        </div>
+                      )}
+                      {height > 56 && event.description && (
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: COLORS.muted,
+                            marginTop: 2,
+                            overflow: "hidden",
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {event.description}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Event summary pills */}
+            {sortedEvents.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  marginTop: 14,
+                  flexWrap: "wrap",
+                }}
+              >
+                {sortedEvents.map((ev) => (
+                  <div
+                    key={ev.id}
+                    onClick={() => setModalState({ isNew: false, event: ev })}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.opacity = "0.72")
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "5px 12px",
+                      background: ev.color + "18",
+                      border: `1px solid ${ev.color}44`,
+                      borderRadius: 20,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      color: COLORS.ink,
+                      fontFamily: "'DM Sans', sans-serif",
+                      transition: "opacity 0.15s",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: ev.color,
+                        display: "inline-block",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontWeight: 500 }}>{ev.startTime}</span>
+                    {ev.title}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {modalState && (
+              <TimelineEventModal
+                event={modalState.isNew ? null : modalState.event}
+                isNew={modalState.isNew}
+                defaultStartTime={
+                  modalState.clickedTime ||
+                  (modalState.event && modalState.event.startTime) ||
+                  formatTime(startMin)
+                }
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onClose={() => setModalState(null)}
+              />
+            )}
+
+            {dayModal && (
+              <TimelineDayModal
+                day={dayModal.day}
+                isNew={dayModal.isNew}
+                dayCount={days.length}
+                onSave={dayModal.isNew ? handleAddDay : handleEditDay}
+                onDelete={handleDeleteDay}
+                onClose={() => setDayModal(null)}
+              />
+            )}
+          </div>
+        );
+      }
+
       const NAV_ITEMS = [
         { id: "overview", icon: "🌸" },
         { id: "budget", icon: "💰" },
@@ -4532,6 +5723,7 @@
         { id: "photographers", icon: "📷" },
         { id: "vendors", icon: "🎀" },
         { id: "checklist", icon: "✅" },
+        { id: "timeline", icon: "🕐" },
       ];
 
       function WeddingPlanner() {
@@ -4546,6 +5738,7 @@
         const _checklistRef = React.useRef([]);
         const _checklistCatsRef = React.useRef([]);
         const [vendors, setVendors] = useState([]);
+        const [timeline, setTimeline] = useState(DEFAULT_TIMELINE);
         const [navItems] = useState(NAV_ITEMS);
         const [lang, setLangState] = useState(
           () =>
@@ -4592,6 +5785,7 @@
                 setChecklist(clTasks);
                 setChecklistCategories(clCats);
                 setVendors(data.vendors || []);
+                setTimeline(data.timeline || DEFAULT_TIMELINE);
                 if (data.meta) {
                   setMeta(data.meta);
                   if (data.meta.lang) {
@@ -4672,6 +5866,7 @@
           }
         };
         const setVendorsPersist = createPersistSetter("vendors", setVendors);
+        const setTimelinePersist = createPersistSetter("timeline", setTimeline);
 
         const saveMeta = async (newMeta) => {
           setMeta(newMeta);
@@ -4715,6 +5910,7 @@
           tables: "nav_seating",
           checklist: "nav_checklist",
           vendors: "nav_vendors",
+          timeline: "nav_timeline",
         };
 
         const renderContent = () => {
@@ -4768,6 +5964,13 @@
                   setVendors={setVendorsPersist}
                   budget={budget}
                   setBudget={setBudgetPersist}
+                />
+              );
+            case "timeline":
+              return (
+                <Timeline
+                  timeline={timeline}
+                  setTimeline={setTimelinePersist}
                 />
               );
             default:
@@ -5042,7 +6245,7 @@
                       letterSpacing: "0.06em",
                     }}
                   >
-                    v1.3
+                    v1.6
                   </div>
                 </div>
               </div>

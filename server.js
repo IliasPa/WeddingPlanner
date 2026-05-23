@@ -25,6 +25,7 @@ const COLLECTIONS = {
   vendors: "data/vendors.json",
   nav: "data/nav.json",
   meta: "data/meta.json",
+  timeline: "data/timeline.json",
 };
 
 function pad(n, width = 2) {

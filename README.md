@@ -68,7 +68,7 @@ v1.2 replaces the IPC-based write mechanism with a full local REST API server (`
 | `PUT`    | `/api/:collection`     | Replace the entire collection                 |
 | `DELETE` | `/api/:collection/:id` | Delete an item by ID                          |
 
-**Collections:** `venues`, `photographers`, `budget`, `guests`, `tables`, `checklist`, `vendors`, `nav`, `meta`
+**Collections:** `venues`, `photographers`, `budget`, `guests`, `tables`, `checklist`, `vendors`, `nav`, `meta`, `timeline`
 
 **Architecture:**
 
@@ -145,6 +145,51 @@ v1.5 adds full Greek/English language support across the entire UI, makes budget
 
 ---
 
+### v1.6 — Event Timeline
+
+v1.6 adds a dedicated **Timeline** tab for scheduling every moment of the event, across multiple days.
+
+**What changed:**
+
+- New **Timeline** tab (🕐) — a vertical time-axis view for planning the day minute by minute
+- **Multi-day support** — add as many named days as needed (e.g. "Preparation Day", "Wedding Eve", "Wedding Day"); each day has its own independent event list and can optionally store a date
+- **Click to add** — click anywhere on the timeline canvas to place a new event at that time; the time snaps to the nearest interval
+- **Event fields** — title, start time, duration (minutes), category, description, and color (10 presets + free-form color picker)
+- **Auto-range** — the visible time window is calculated automatically: 2 hours before the earliest event and 2 hours after the latest event ends; no manual start/end time to manage
+- **Interval toggle** — switch between 15 / 30 / 60 min grid resolution with a single click; saved to `data/timeline.json`
+- **Event summary pills** — a compact strip below the canvas lists every event in chronological order; click any pill to edit
+- New collection `timeline` added to the REST API and `data/timeline.json`
+
+**`data/timeline.json` structure:**
+
+```json
+{
+  "settings": { "interval": 30 },
+  "days": [
+    {
+      "id": "day1",
+      "name": "Preparation Day",
+      "date": "",
+      "events": [
+        {
+          "id": "1",
+          "title": "Bridal Preparation",
+          "startTime": "07:00",
+          "duration": 120,
+          "color": "#B5737F",
+          "description": "Hair, makeup, and getting dressed",
+          "category": "Preparation"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**No architecture changes** — the existing REST API handles `timeline` as a standard collection via `PUT /api/timeline`.
+
+---
+
 ## Features
 
 | Section           | Description                                                                                                                     |
@@ -157,6 +202,7 @@ v1.5 adds full Greek/English language support across the entire UI, makes budget
 | **Tables**        | Drag-and-drop seating planner — assign guests to named tables                                                                   |
 | **Checklist**     | Task list grouped by category with done/undone toggle and progress tracking; add and delete custom categories                   |
 | **Vendors**       | Track vendors (florist, catering, etc.) with contact info and status                                                            |
+| **Timeline**      | Multi-day event timeline; click to add events, auto-scaled time axis, interval toggle, color-coded event blocks                 |
 
 All sections support soft-delete (trash) with restore — deleted items are hidden but recoverable.
 
@@ -183,7 +229,7 @@ npm install
 
 ---
 
-## Running the App (v1.5)
+## Running the App (v1.6)
 
 v1.5 requires both the API server and the Electron window to be running.
 

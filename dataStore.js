@@ -9,6 +9,7 @@
     vendors: "data/vendors.json",
     nav: "data/nav.json",
     meta: "data/meta.json",
+    timeline: "data/timeline.json",
   };
 
   const store = {};
