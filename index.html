@@ -119,6 +119,16 @@
           ven_up_to: "Up to {n} guests",
           ven_select: "Select This Venue",
           ven_delete: "Delete venue",
+          ven_menu: "Menu",
+          ven_menu_empty: "No dishes added yet",
+          ven_menu_add: "+ Add Dish",
+          ven_menu_course: "Course",
+          ven_menu_dish: "Dish",
+          ven_menu_desc: "Description",
+          ven_menu_course_ph: "e.g. Starter",
+          ven_menu_dish_ph: "e.g. Bruschetta",
+          ven_menu_desc_ph: "Optional details…",
+          ven_menu_remove: "Remove dish",
           pho_title: "Photographers",
           pho_sub: "Choose your artist to capture every magical moment",
           pho_add: "+ Add Photographer",
@@ -331,6 +341,16 @@
           ven_up_to: "Έως {n} καλεσμένοι",
           ven_select: "Επιλογή Χώρου",
           ven_delete: "Διαγραφή χώρου",
+          ven_menu: "Μενού",
+          ven_menu_empty: "Δεν έχουν προστεθεί πιάτα ακόμα",
+          ven_menu_add: "+ Προσθήκη Πιάτου",
+          ven_menu_course: "Κατηγορία",
+          ven_menu_dish: "Πιάτο",
+          ven_menu_desc: "Περιγραφή",
+          ven_menu_course_ph: "π.χ. Ορεκτικό",
+          ven_menu_dish_ph: "π.χ. Μπρουσκέτα",
+          ven_menu_desc_ph: "Προαιρετικές λεπτομέρειες…",
+          ven_menu_remove: "Αφαίρεση πιάτου",
           pho_title: "Φωτογράφοι",
           pho_sub: "Επιλέξτε τον καλλιτέχνη σας για κάθε μαγική στιγμή",
           pho_add: "+ Προσθήκη Φωτογράφου",
@@ -1999,7 +2019,13 @@
           rating: "",
           notes: "",
           image: "🏛",
+          menu: [],
         });
+        const [expandedMenus, setExpandedMenus] = useState({});
+        const [addingMenuItem, setAddingMenuItem] = useState({});
+        const [newMenuItems, setNewMenuItems] = useState({});
+        const [draggedItemId, setDraggedItemId] = useState(null);
+        const [dragOverItemId, setDragOverItemId] = useState(null);
 
         const active = venues.filter((v) => !v.deleted);
         const deleted = venues.filter((v) => v.deleted);
@@ -2029,6 +2055,7 @@
               rating: "",
               notes: "",
               image: "🏛",
+              menu: [],
             });
             setShowAdd(false);
           } catch (e) {
@@ -2055,6 +2082,52 @@
             );
           } catch (e) {
             console.warn("Failed to restore venue", e);
+          }
+        };
+
+        const toggleMenu = (id) =>
+          setExpandedMenus((prev) => ({ ...prev, [id]: !prev[id] }));
+
+        const addMenuItem = async (venueId) => {
+          const item = newMenuItems[venueId];
+          if (!item?.name) return;
+          const menuItem = {
+            id: Date.now(),
+            course: item.course || "",
+            name: item.name,
+            description: item.description || "",
+          };
+          const venue = venues.find((v) => v.id === venueId);
+          const updatedMenu = [...(venue.menu || []), menuItem];
+          try {
+            await apiPatch("venues", venueId, { menu: updatedMenu });
+            setVenues((vs) =>
+              vs.map((v) =>
+                v.id === venueId ? { ...v, menu: updatedMenu } : v,
+              ),
+            );
+            setNewMenuItems((prev) => ({
+              ...prev,
+              [venueId]: { course: "", name: "", description: "" },
+            }));
+            setAddingMenuItem((prev) => ({ ...prev, [venueId]: false }));
+          } catch (e) {
+            console.warn("Failed to add menu item", e);
+          }
+        };
+
+        const removeMenuItem = async (venueId, itemId) => {
+          const venue = venues.find((v) => v.id === venueId);
+          const updatedMenu = (venue.menu || []).filter((m) => m.id !== itemId);
+          try {
+            await apiPatch("venues", venueId, { menu: updatedMenu });
+            setVenues((vs) =>
+              vs.map((v) =>
+                v.id === venueId ? { ...v, menu: updatedMenu } : v,
+              ),
+            );
+          } catch (e) {
+            console.warn("Failed to remove menu item", e);
           }
         };
 
@@ -2266,150 +2339,269 @@
             <div
               style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}
             >
-              {active.map((v) => (
-                <Card
-                  key={v.id}
-                  style={{
-                    border: v.selected
-                      ? `2px solid ${COLORS.rose}`
-                      : `1px solid ${COLORS.border}`,
-                    position: "relative",
-                  }}
-                >
-                  {v.selected && (
-                    <div style={{ position: "absolute", top: 16, right: 16 }}>
-                      <Badge>{t("ven_selected")}</Badge>
-                    </div>
-                  )}
-                  <div
+              {active.map((v) => {
+                const menu = v.menu || [];
+                const courseOrder = [];
+                const grouped = {};
+                menu.forEach((item) => {
+                  const c = item.course || "";
+                  if (!grouped[c]) { grouped[c] = []; courseOrder.push(c); }
+                  grouped[c].push(item);
+                });
+                return (
+                  <Card
+                    key={v.id}
                     style={{
-                      display: "flex",
-                      gap: 20,
-                      alignItems: "flex-start",
+                      border: v.selected
+                        ? `2px solid ${COLORS.rose}`
+                        : `1px solid ${COLORS.border}`,
+                      position: "relative",
                     }}
                   >
-                    <div style={{ fontSize: 48, lineHeight: 1 }}>{v.image}</div>
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: 12,
-                          marginBottom: 4,
-                        }}
-                      >
-                        <h3
+                    {/* ① Top-right: Selected badge OR Select button */}
+                    <div style={{ position: "absolute", top: 16, right: 16, zIndex: 1 }}>
+                      {v.selected ? (
+                        <Badge>{t("ven_selected")}</Badge>
+                      ) : (
+                        <button
+                          onClick={() => selectVenue(v.id)}
                           style={{
-                            fontFamily: "'Cormorant Garamond', serif",
-                            fontSize: 26,
-                            fontWeight: 500,
-                            color: COLORS.ink,
-                            margin: 0,
-                          }}
-                        >
-                          {v.name}
-                        </h3>
-                        <span
-                          style={{
+                            padding: "6px 16px",
+                            background: "transparent",
+                            color: COLORS.rose,
+                            border: `1px solid ${COLORS.rose}`,
+                            borderRadius: 10,
+                            cursor: "pointer",
                             fontFamily: "'DM Sans', sans-serif",
                             fontSize: 13,
-                            color: COLORS.muted,
                           }}
                         >
-                          {v.location}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 8,
-                          marginBottom: 10,
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <Badge color={COLORS.brown} bg={COLORS.champagne}>
-                          {v.style}
-                        </Badge>
-                        <Badge color={COLORS.sage} bg={COLORS.sageLight}>
-                          {t("ven_up_to", { n: v.capacity })}
-                        </Badge>
-                        <Badge color={COLORS.gold} bg={COLORS.goldLight}>
-                          ⭐ {v.rating}
-                        </Badge>
-                      </div>
-                      <p
-                        style={{
-                          fontFamily: "'DM Sans', sans-serif",
-                          fontSize: 14,
-                          color: COLORS.muted,
-                          margin: "0 0 12px",
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {v.notes}
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontFamily: "'Cormorant Garamond', serif",
-                            fontSize: 24,
-                            fontWeight: 500,
-                            color: COLORS.rose,
-                          }}
-                        >
-                          ${v.price.toLocaleString()}
-                        </span>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 8,
-                            alignItems: "center",
-                          }}
-                        >
-                          {!v.selected && (
+                          {t("ven_select")}
+                        </button>
+                      )}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+                      <div style={{ fontSize: 48, lineHeight: 1 }}>{v.image}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {/* Name + location — leave room for top-right button */}
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 4, paddingRight: 160 }}>
+                          <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: COLORS.ink, margin: 0 }}>
+                            {v.name}
+                          </h3>
+                          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.muted }}>
+                            {v.location}
+                          </span>
+                        </div>
+
+                        {/* Badges */}
+                        <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+                          <Badge color={COLORS.brown} bg={COLORS.champagne}>{v.style}</Badge>
+                          <Badge color={COLORS.sage} bg={COLORS.sageLight}>{t("ven_up_to", { n: v.capacity })}</Badge>
+                          <Badge color={COLORS.gold} bg={COLORS.goldLight}>⭐ {v.rating}</Badge>
+                        </div>
+
+                        {/* ② Notes + Price on the same row */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 6 }}>
+                          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: COLORS.muted, margin: 0, lineHeight: 1.6, flex: 1 }}>
+                            {v.notes || ""}
+                          </p>
+                          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 500, color: COLORS.rose, flexShrink: 0, paddingTop: 3 }}>
+                            ${v.price.toLocaleString()}
+                          </span>
+                        </div>
+
+                        {/* ── Menu section ── */}
+                        <div style={{ borderTop: `1px solid ${COLORS.border}`, paddingTop: 8 }}>
+                          {/* ③ Menu toggle left, trash right */}
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: expandedMenus[v.id] ? 10 : 0 }}>
                             <button
-                              onClick={() => selectVenue(v.id)}
-                              style={{
-                                padding: "8px 20px",
-                                background: "transparent",
-                                color: COLORS.rose,
-                                border: `1px solid ${COLORS.rose}`,
-                                borderRadius: 10,
-                                cursor: "pointer",
-                                fontFamily: "'DM Sans', sans-serif",
-                                fontSize: 14,
-                              }}
+                              onClick={() => toggleMenu(v.id)}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: expandedMenus[v.id] ? COLORS.rose : COLORS.muted, display: "flex", alignItems: "center", gap: 6, padding: "2px 0" }}
                             >
-                              {t("ven_select")}
+                              🍽 {t("ven_menu")}
+                              {menu.length > 0 && (
+                                <span style={{ background: COLORS.roseLight, color: COLORS.rose, borderRadius: 10, fontSize: 11, padding: "1px 7px", fontWeight: 500 }}>
+                                  {menu.length}
+                                </span>
+                              )}
+                              <span style={{ fontSize: 10 }}>{expandedMenus[v.id] ? "▲" : "▼"}</span>
                             </button>
+                            <button
+                              onClick={() => deleteVenue(v.id)}
+                              title={t("ven_delete")}
+                              style={{ background: "none", border: `1px solid ${COLORS.border}`, borderRadius: 8, color: COLORS.muted, cursor: "pointer", fontSize: 15, padding: "5px 9px", lineHeight: 1 }}
+                            >
+                              🗑
+                            </button>
+                          </div>
+
+                          {expandedMenus[v.id] && (
+                            <div>
+                              {menu.length === 0 ? (
+                                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.muted, padding: "4px 0 8px" }}>
+                                  {t("ven_menu_empty")}
+                                </div>
+                              ) : (
+                                /* ④ Grouped by course, ⑤ drag & drop */
+                                <div style={{ display: "flex", flexDirection: "column", gap: 0, marginBottom: 10 }}>
+                                  {courseOrder.map((courseName) => (
+                                    <div
+                                      key={courseName || "__none__"}
+                                      onDragOver={(e) => e.preventDefault()}
+                                      onDrop={(e) => {
+                                        e.preventDefault();
+                                        if (!draggedItemId) return;
+                                        const cur = [...(v.menu || [])];
+                                        const fi = cur.findIndex((m) => m.id === draggedItemId);
+                                        if (fi === -1) return;
+                                        const [moved] = cur.splice(fi, 1);
+                                        moved.course = courseName;
+                                        const last = cur.reduce((acc, m, i) => (m.course || "") === courseName ? i : acc, -1);
+                                        cur.splice(last + 1, 0, moved);
+                                        apiPatch("venues", v.id, { menu: cur })
+                                          .then(() => setVenues((vs) => vs.map((vn) => vn.id === v.id ? { ...vn, menu: cur } : vn)))
+                                          .catch(console.warn);
+                                        setDraggedItemId(null);
+                                        setDragOverItemId(null);
+                                      }}
+                                      style={{ marginBottom: 10 }}
+                                    >
+                                      {/* Course heading */}
+                                      {courseName && (
+                                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: COLORS.rose, textTransform: "uppercase", letterSpacing: "0.08em", padding: "3px 4px 5px", borderBottom: `1px solid ${COLORS.roseLight}`, marginBottom: 4 }}>
+                                          {courseName}
+                                        </div>
+                                      )}
+                                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                        {grouped[courseName].map((item) => (
+                                          <div
+                                            key={item.id}
+                                            draggable
+                                            onDragStart={(e) => { setDraggedItemId(item.id); e.dataTransfer.effectAllowed = "move"; }}
+                                            onDragEnd={() => { setDraggedItemId(null); setDragOverItemId(null); }}
+                                            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOverItemId(item.id); }}
+                                            onDragLeave={() => setDragOverItemId(null)}
+                                            onDrop={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              if (!draggedItemId || draggedItemId === item.id) return;
+                                              const cur = [...(v.menu || [])];
+                                              const fi = cur.findIndex((m) => m.id === draggedItemId);
+                                              if (fi === -1) return;
+                                              const [moved] = cur.splice(fi, 1);
+                                              moved.course = item.course;
+                                              const ti = cur.findIndex((m) => m.id === item.id);
+                                              cur.splice(ti, 0, moved);
+                                              apiPatch("venues", v.id, { menu: cur })
+                                                .then(() => setVenues((vs) => vs.map((vn) => vn.id === v.id ? { ...vn, menu: cur } : vn)))
+                                                .catch(console.warn);
+                                              setDraggedItemId(null);
+                                              setDragOverItemId(null);
+                                            }}
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                              alignItems: "flex-start",
+                                              padding: "7px 10px",
+                                              background: COLORS.bg,
+                                              borderRadius: 8,
+                                              border: dragOverItemId === item.id ? `2px solid ${COLORS.rose}` : `1px solid ${COLORS.border}`,
+                                              opacity: draggedItemId === item.id ? 0.4 : 1,
+                                              cursor: "grab",
+                                              transition: "border 0.1s, opacity 0.15s",
+                                            }}
+                                          >
+                                            {/* Left: drag handle + dish name */}
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                                              <span style={{ color: COLORS.border, fontSize: 14, flexShrink: 0, userSelect: "none" }}>⠿</span>
+                                              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.ink, fontWeight: 500 }}>
+                                                {item.name}
+                                              </span>
+                                            </div>
+                                            {/* ⑥ Right: description wraps + remove button */}
+                                            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, maxWidth: "45%" }}>
+                                              {item.description && (
+                                                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.muted, textAlign: "right", whiteSpace: "normal", wordBreak: "break-word" }}>
+                                                  {item.description}
+                                                </span>
+                                              )}
+                                              <button
+                                                onClick={() => removeMenuItem(v.id, item.id)}
+                                                title={t("ven_menu_remove")}
+                                                style={{ background: "none", border: "none", cursor: "pointer", color: COLORS.muted, fontSize: 14, padding: 0, flexShrink: 0, lineHeight: 1 }}
+                                              >
+                                                ✕
+                                              </button>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {addingMenuItem[v.id] ? (
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 2fr auto", gap: 6, alignItems: "end" }}>
+                                  <div>
+                                    <div style={lbl}>{t("ven_menu_course")}</div>
+                                    <input
+                                      value={newMenuItems[v.id]?.course || ""}
+                                      onChange={(e) => setNewMenuItems((prev) => ({ ...prev, [v.id]: { ...(prev[v.id] || {}), course: e.target.value } }))}
+                                      placeholder={t("ven_menu_course_ph")}
+                                      style={inp}
+                                    />
+                                  </div>
+                                  <div>
+                                    <div style={lbl}>{t("ven_menu_dish")}</div>
+                                    <input
+                                      value={newMenuItems[v.id]?.name || ""}
+                                      onChange={(e) => setNewMenuItems((prev) => ({ ...prev, [v.id]: { ...(prev[v.id] || {}), name: e.target.value } }))}
+                                      placeholder={t("ven_menu_dish_ph")}
+                                      style={inp}
+                                    />
+                                  </div>
+                                  <div>
+                                    <div style={lbl}>{t("ven_menu_desc")}</div>
+                                    <input
+                                      value={newMenuItems[v.id]?.description || ""}
+                                      onChange={(e) => setNewMenuItems((prev) => ({ ...prev, [v.id]: { ...(prev[v.id] || {}), description: e.target.value } }))}
+                                      placeholder={t("ven_menu_desc_ph")}
+                                      style={inp}
+                                    />
+                                  </div>
+                                  <div style={{ display: "flex", gap: 4 }}>
+                                    <button
+                                      onClick={() => addMenuItem(v.id)}
+                                      style={{ padding: "7px 12px", background: COLORS.rose, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}
+                                    >
+                                      {t("add")}
+                                    </button>
+                                    <button
+                                      onClick={() => setAddingMenuItem((prev) => ({ ...prev, [v.id]: false }))}
+                                      style={{ padding: "7px 10px", background: "transparent", color: COLORS.muted, border: `1px solid ${COLORS.border}`, borderRadius: 8, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}
+                                    >
+                                      {t("cancel")}
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setAddingMenuItem((prev) => ({ ...prev, [v.id]: true }))}
+                                  style={{ padding: "5px 12px", background: "transparent", color: COLORS.rose, border: `1px dashed ${COLORS.roseMid}`, borderRadius: 8, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500 }}
+                                >
+                                  {t("ven_menu_add")}
+                                </button>
+                              )}
+                            </div>
                           )}
-                          <button
-                            onClick={() => deleteVenue(v.id)}
-                            title={t("ven_delete")}
-                            style={{
-                              background: "none",
-                              border: `1px solid ${COLORS.border}`,
-                              borderRadius: 8,
-                              color: COLORS.muted,
-                              cursor: "pointer",
-                              fontSize: 15,
-                              padding: "6px 10px",
-                            }}
-                          >
-                            🗑
-                          </button>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </div>
         );
@@ -6245,7 +6437,7 @@
                       letterSpacing: "0.06em",
                     }}
                   >
-                    v1.6
+                    v1.7
                   </div>
                 </div>
               </div>

@@ -137,6 +137,16 @@ const TRANSLATIONS = {
     ven_up_to: "Up to {n} guests",
     ven_select: "Select This Venue",
     ven_delete: "Delete venue",
+    ven_menu: "Menu",
+    ven_menu_empty: "No dishes added yet",
+    ven_menu_add: "+ Add Dish",
+    ven_menu_course: "Course",
+    ven_menu_dish: "Dish",
+    ven_menu_desc: "Description",
+    ven_menu_course_ph: "e.g. Starter",
+    ven_menu_dish_ph: "e.g. Bruschetta",
+    ven_menu_desc_ph: "Optional details…",
+    ven_menu_remove: "Remove dish",
     pho_title: "Photographers",
     pho_sub: "Choose your artist to capture every magical moment",
     pho_add: "+ Add Photographer",
@@ -236,6 +246,31 @@ const TRANSLATIONS = {
     vtype_other: "Other",
     set_title: "Settings",
     set_sub: "Customise your Wedding Planner experience",
+    nav_timeline: "Timeline",
+    tl_title: "Event Timeline",
+    tl_sub: "Plan your day hour by hour — click the timeline to add events",
+    tl_settings: "Settings",
+    tl_add_event: "Add Event",
+    tl_edit_event: "Edit Event",
+    tl_event_title: "Event Title",
+    tl_title_ph: "e.g. Ceremony",
+    tl_start_time: "Start Time",
+    tl_duration_min: "Duration (min)",
+    tl_category: "Category",
+    tl_category_ph: "e.g. Ceremony",
+    tl_description: "Description",
+    tl_desc_ph: "Optional details…",
+    tl_color: "Color",
+    tl_delete: "Delete Event",
+    tl_start: "Timeline Start",
+    tl_end: "Timeline End",
+    tl_interval: "Interval",
+    tl_min: "min",
+    tl_row_height: "Row Height",
+    tl_compact: "Compact",
+    tl_normal: "Normal",
+    tl_spacious: "Spacious",
+    tl_click_to_add: "Click anywhere on the timeline to add an event",
   },
   el: {
     nav_overview: "Επισκόπηση",
@@ -327,6 +362,16 @@ const TRANSLATIONS = {
     ven_up_to: "Έως {n} άτομα",
     ven_select: "Επιλογή Χώρου",
     ven_delete: "Διαγραφή χώρου",
+    ven_menu: "Μενού",
+    ven_menu_empty: "Δεν έχουν προστεθεί πιάτα ακόμα",
+    ven_menu_add: "+ Προσθήκη Πιάτου",
+    ven_menu_course: "Κατηγορία",
+    ven_menu_dish: "Πιάτο",
+    ven_menu_desc: "Περιγραφή",
+    ven_menu_course_ph: "π.χ. Ορεκτικό",
+    ven_menu_dish_ph: "π.χ. Μπρουσκέτα",
+    ven_menu_desc_ph: "Προαιρετικές λεπτομέρειες…",
+    ven_menu_remove: "Αφαίρεση πιάτου",
     pho_title: "Φωτογράφοι",
     pho_sub: "Επιλέξτε τον καλλιτέχνη σας για να αποτυπώσει κάθε μαγική στιγμή",
     pho_add: "+ Προσθήκη Φωτογράφου",
@@ -427,6 +472,31 @@ const TRANSLATIONS = {
     vtype_other: "Άλλο",
     set_title: "Ρυθμίσεις",
     set_sub: "Προσαρμόστε την εμπειρία του Οργανωτή Γάμου σας",
+    nav_timeline: "Χρονοδιάγραμμα",
+    tl_title: "Χρονοδιάγραμμα Εκδήλωσης",
+    tl_sub: "Σχεδιάστε τη μέρα σας ώρα-ώρα — κάντε κλικ για προσθήκη",
+    tl_settings: "Ρυθμίσεις",
+    tl_add_event: "Προσθήκη",
+    tl_edit_event: "Επεξεργασία",
+    tl_event_title: "Τίτλος",
+    tl_title_ph: "π.χ. Τελετή",
+    tl_start_time: "Ώρα Έναρξης",
+    tl_duration_min: "Διάρκεια (λεπτά)",
+    tl_category: "Κατηγορία",
+    tl_category_ph: "π.χ. Τελετή",
+    tl_description: "Περιγραφή",
+    tl_desc_ph: "Προαιρετικές λεπτομέρειες…",
+    tl_color: "Χρώμα",
+    tl_delete: "Διαγραφή",
+    tl_start: "Έναρξη",
+    tl_end: "Λήξη",
+    tl_interval: "Διάστημα",
+    tl_min: "λεπτ.",
+    tl_row_height: "Ύψος Σειράς",
+    tl_compact: "Συμπαγής",
+    tl_normal: "Κανονικό",
+    tl_spacious: "Άνετο",
+    tl_click_to_add: "Κάντε κλικ στο χρονοδιάγραμμα για προσθήκη",
   },
 };
 
@@ -1577,7 +1647,11 @@ function Venues({ venues, setVenues }) {
     rating: "",
     notes: "",
     image: "🏛",
+    menu: [],
   });
+  const [expandedMenus, setExpandedMenus] = useState({});
+  const [addingMenuItem, setAddingMenuItem] = useState({});
+  const [newMenuItems, setNewMenuItems] = useState({});
 
   const active = venues.filter((v) => !v.deleted);
   const deleted = venues.filter((v) => v.deleted);
@@ -1607,6 +1681,7 @@ function Venues({ venues, setVenues }) {
         rating: "",
         notes: "",
         image: "🏛",
+        menu: [],
       });
       setShowAdd(false);
     } catch (e) {
@@ -1633,6 +1708,48 @@ function Venues({ venues, setVenues }) {
       );
     } catch (e) {
       console.warn("Failed to restore venue", e);
+    }
+  };
+
+  const toggleMenu = (id) =>
+    setExpandedMenus((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const addMenuItem = async (venueId) => {
+    const item = newMenuItems[venueId];
+    if (!item?.name) return;
+    const menuItem = {
+      id: Date.now(),
+      course: item.course || "",
+      name: item.name,
+      description: item.description || "",
+    };
+    const venue = venues.find((v) => v.id === venueId);
+    const updatedMenu = [...(venue.menu || []), menuItem];
+    try {
+      await apiPatch("venues", venueId, { menu: updatedMenu });
+      setVenues((vs) =>
+        vs.map((v) => (v.id === venueId ? { ...v, menu: updatedMenu } : v)),
+      );
+      setNewMenuItems((prev) => ({
+        ...prev,
+        [venueId]: { course: "", name: "", description: "" },
+      }));
+      setAddingMenuItem((prev) => ({ ...prev, [venueId]: false }));
+    } catch (e) {
+      console.warn("Failed to add menu item", e);
+    }
+  };
+
+  const removeMenuItem = async (venueId, itemId) => {
+    const venue = venues.find((v) => v.id === venueId);
+    const updatedMenu = (venue.menu || []).filter((m) => m.id !== itemId);
+    try {
+      await apiPatch("venues", venueId, { menu: updatedMenu });
+      setVenues((vs) =>
+        vs.map((v) => (v.id === venueId ? { ...v, menu: updatedMenu } : v)),
+      );
+    } catch (e) {
+      console.warn("Failed to remove menu item", e);
     }
   };
 
@@ -1916,6 +2033,272 @@ function Venues({ venues, setVenues }) {
                 >
                   {v.notes}
                 </p>
+
+                {/* ── Menu section ── */}
+                <div
+                  style={{
+                    borderTop: `1px solid ${COLORS.border}`,
+                    paddingTop: 10,
+                    marginBottom: 14,
+                  }}
+                >
+                  <button
+                    onClick={() => toggleMenu(v.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 13,
+                      color: expandedMenus[v.id] ? COLORS.rose : COLORS.muted,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "2px 0",
+                    }}
+                  >
+                    🍽 {t("ven_menu")}
+                    {(v.menu || []).length > 0 && (
+                      <span
+                        style={{
+                          background: COLORS.roseLight,
+                          color: COLORS.rose,
+                          borderRadius: 10,
+                          fontSize: 11,
+                          padding: "1px 7px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {(v.menu || []).length}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 10 }}>
+                      {expandedMenus[v.id] ? "▲" : "▼"}
+                    </span>
+                  </button>
+
+                  {expandedMenus[v.id] && (
+                    <div style={{ marginTop: 10 }}>
+                      {(v.menu || []).length === 0 ? (
+                        <div
+                          style={{
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontSize: 13,
+                            color: COLORS.muted,
+                            padding: "4px 0 8px",
+                          }}
+                        >
+                          {t("ven_menu_empty")}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 6,
+                            marginBottom: 10,
+                          }}
+                        >
+                          {(v.menu || []).map((item) => (
+                            <div
+                              key={item.id}
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                padding: "7px 10px",
+                                background: COLORS.bg,
+                                borderRadius: 8,
+                                border: `1px solid ${COLORS.border}`,
+                              }}
+                            >
+                              <div>
+                                {item.course && (
+                                  <span
+                                    style={{
+                                      fontFamily: "'DM Sans', sans-serif",
+                                      fontSize: 11,
+                                      color: COLORS.rose,
+                                      fontWeight: 600,
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.05em",
+                                      marginRight: 8,
+                                    }}
+                                  >
+                                    {item.course}
+                                  </span>
+                                )}
+                                <span
+                                  style={{
+                                    fontFamily: "'DM Sans', sans-serif",
+                                    fontSize: 13,
+                                    color: COLORS.ink,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {item.name}
+                                </span>
+                                {item.description && (
+                                  <div
+                                    style={{
+                                      fontFamily: "'DM Sans', sans-serif",
+                                      fontSize: 12,
+                                      color: COLORS.muted,
+                                      marginTop: 2,
+                                    }}
+                                  >
+                                    {item.description}
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => removeMenuItem(v.id, item.id)}
+                                title={t("ven_menu_remove")}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  color: COLORS.muted,
+                                  fontSize: 14,
+                                  padding: "0 0 0 10px",
+                                  flexShrink: 0,
+                                  lineHeight: 1,
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {addingMenuItem[v.id] ? (
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 2fr 2fr auto",
+                            gap: 6,
+                            alignItems: "end",
+                          }}
+                        >
+                          <div>
+                            <div style={labelStyle}>{t("ven_menu_course")}</div>
+                            <input
+                              value={newMenuItems[v.id]?.course || ""}
+                              onChange={(e) =>
+                                setNewMenuItems((prev) => ({
+                                  ...prev,
+                                  [v.id]: {
+                                    ...(prev[v.id] || {}),
+                                    course: e.target.value,
+                                  },
+                                }))
+                              }
+                              placeholder={t("ven_menu_course_ph")}
+                              style={inputStyle}
+                            />
+                          </div>
+                          <div>
+                            <div style={labelStyle}>{t("ven_menu_dish")}</div>
+                            <input
+                              value={newMenuItems[v.id]?.name || ""}
+                              onChange={(e) =>
+                                setNewMenuItems((prev) => ({
+                                  ...prev,
+                                  [v.id]: {
+                                    ...(prev[v.id] || {}),
+                                    name: e.target.value,
+                                  },
+                                }))
+                              }
+                              placeholder={t("ven_menu_dish_ph")}
+                              style={inputStyle}
+                            />
+                          </div>
+                          <div>
+                            <div style={labelStyle}>{t("ven_menu_desc")}</div>
+                            <input
+                              value={newMenuItems[v.id]?.description || ""}
+                              onChange={(e) =>
+                                setNewMenuItems((prev) => ({
+                                  ...prev,
+                                  [v.id]: {
+                                    ...(prev[v.id] || {}),
+                                    description: e.target.value,
+                                  },
+                                }))
+                              }
+                              placeholder={t("ven_menu_desc_ph")}
+                              style={inputStyle}
+                            />
+                          </div>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            <button
+                              onClick={() => addMenuItem(v.id)}
+                              style={{
+                                padding: "7px 12px",
+                                background: COLORS.rose,
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 8,
+                                cursor: "pointer",
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: 13,
+                                fontWeight: 500,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {t("add")}
+                            </button>
+                            <button
+                              onClick={() =>
+                                setAddingMenuItem((prev) => ({
+                                  ...prev,
+                                  [v.id]: false,
+                                }))
+                              }
+                              style={{
+                                padding: "7px 10px",
+                                background: "transparent",
+                                color: COLORS.muted,
+                                border: `1px solid ${COLORS.border}`,
+                                borderRadius: 8,
+                                cursor: "pointer",
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: 13,
+                              }}
+                            >
+                              {t("cancel")}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            setAddingMenuItem((prev) => ({
+                              ...prev,
+                              [v.id]: true,
+                            }))
+                          }
+                          style={{
+                            padding: "5px 12px",
+                            background: "transparent",
+                            color: COLORS.rose,
+                            border: `1px dashed ${COLORS.roseMid}`,
+                            borderRadius: 8,
+                            cursor: "pointer",
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontSize: 12,
+                            fontWeight: 500,
+                          }}
+                        >
+                          {t("ven_menu_add")}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div
                   style={{
                     display: "flex",
@@ -4028,6 +4411,388 @@ function Settings() {
   );
 }
 
+const DEFAULT_TIMELINE = {
+  settings: { startTime: "08:00", endTime: "23:00", interval: 30, slotHeight: 60 },
+  events: [],
+};
+
+const TIMELINE_COLORS = [
+  "#B5737F", "#8A9E80", "#C4A055", "#7B9CBF", "#A07BC4",
+  "#BF7B7B", "#7BBFB5", "#8C7B74", "#6B4C3B", "#4A7B6F",
+];
+
+function TimelineEventModal({ event, isNew, defaultStartTime, onSave, onDelete, onClose }) {
+  const { t } = useContext(LangContext);
+  const [form, setForm] = useState(
+    event
+      ? { ...event }
+      : { title: "", startTime: defaultStartTime || "09:00", duration: 60, color: "#B5737F", description: "", category: "" }
+  );
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(44,35,32,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
+      onClick={onClose}
+    >
+      <div
+        style={{ background: COLORS.white, borderRadius: 20, padding: "28px 32px", width: 460, maxWidth: "92vw", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 500, color: COLORS.ink, margin: "0 0 22px" }}>
+          {isNew ? t("tl_add_event") : t("tl_edit_event")}
+        </h3>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <label style={{ fontSize: 13, color: COLORS.muted, display: "block" }}>
+            {t("tl_event_title")}
+            <input
+              value={form.title}
+              onChange={(e) => set("title", e.target.value)}
+              placeholder={t("tl_title_ph")}
+              autoFocus
+              style={{ display: "block", width: "100%", marginTop: 5, padding: "9px 12px", border: `1.5px solid ${COLORS.border}`, borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box", color: COLORS.ink }}
+            />
+          </label>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <label style={{ fontSize: 13, color: COLORS.muted, display: "block" }}>
+              {t("tl_start_time")}
+              <input
+                type="time"
+                value={form.startTime}
+                onChange={(e) => set("startTime", e.target.value)}
+                style={{ display: "block", width: "100%", marginTop: 5, padding: "9px 12px", border: `1.5px solid ${COLORS.border}`, borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box", color: COLORS.ink }}
+              />
+            </label>
+            <label style={{ fontSize: 13, color: COLORS.muted, display: "block" }}>
+              {t("tl_duration_min")}
+              <input
+                type="number"
+                value={form.duration}
+                min={5}
+                step={5}
+                onChange={(e) => set("duration", Math.max(5, Number(e.target.value)))}
+                style={{ display: "block", width: "100%", marginTop: 5, padding: "9px 12px", border: `1.5px solid ${COLORS.border}`, borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box", color: COLORS.ink }}
+              />
+            </label>
+          </div>
+
+          <label style={{ fontSize: 13, color: COLORS.muted, display: "block" }}>
+            {t("tl_category")}
+            <input
+              value={form.category}
+              onChange={(e) => set("category", e.target.value)}
+              placeholder={t("tl_category_ph")}
+              style={{ display: "block", width: "100%", marginTop: 5, padding: "9px 12px", border: `1.5px solid ${COLORS.border}`, borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box", color: COLORS.ink }}
+            />
+          </label>
+
+          <label style={{ fontSize: 13, color: COLORS.muted, display: "block" }}>
+            {t("tl_description")}
+            <textarea
+              value={form.description}
+              onChange={(e) => set("description", e.target.value)}
+              placeholder={t("tl_desc_ph")}
+              rows={2}
+              style={{ display: "block", width: "100%", marginTop: 5, padding: "9px 12px", border: `1.5px solid ${COLORS.border}`, borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box", resize: "vertical", color: COLORS.ink }}
+            />
+          </label>
+
+          <div>
+            <div style={{ fontSize: 13, color: COLORS.muted, marginBottom: 8 }}>{t("tl_color")}</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {TIMELINE_COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => set("color", c)}
+                  title={c}
+                  style={{ width: 28, height: 28, borderRadius: "50%", background: c, border: form.color === c ? `3px solid ${COLORS.ink}` : "3px solid transparent", cursor: "pointer", padding: 0, transition: "border 0.12s" }}
+                />
+              ))}
+              <input
+                type="color"
+                value={form.color}
+                onChange={(e) => set("color", e.target.value)}
+                title="Custom color"
+                style={{ width: 28, height: 28, borderRadius: "50%", border: "none", padding: 0, cursor: "pointer", background: "none" }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 24 }}>
+          <div>
+            {!isNew && (
+              <button
+                onClick={() => { if (window.confirm(t("tl_delete") + "?")) onDelete(event.id); }}
+                style={{ padding: "8px 16px", background: "transparent", color: "#c0392b", border: "1px solid #c0392b", borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}
+              >
+                {t("tl_delete")}
+              </button>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={onClose}
+              style={{ padding: "8px 16px", background: "transparent", color: COLORS.muted, border: `1px solid ${COLORS.border}`, borderRadius: 8, cursor: "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              onClick={() => { if (form.title.trim()) onSave(form); }}
+              disabled={!form.title.trim()}
+              style={{ padding: "8px 22px", background: COLORS.rose, color: "#fff", border: "none", borderRadius: 8, cursor: form.title.trim() ? "pointer" : "not-allowed", fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, opacity: form.title.trim() ? 1 : 0.5 }}
+            >
+              {t("save")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Timeline({ timeline, setTimeline }) {
+  const { t } = useContext(LangContext);
+  const [showSettings, setShowSettings] = useState(false);
+  const [modalState, setModalState] = useState(null);
+
+  const tl = timeline || DEFAULT_TIMELINE;
+  const settings = tl.settings || DEFAULT_TIMELINE.settings;
+  const events = tl.events || [];
+  const { startTime, endTime, interval, slotHeight } = settings;
+
+  const parseTime = (ts) => {
+    const parts = (ts || "00:00").split(":");
+    return parseInt(parts[0], 10) * 60 + parseInt(parts[1] || 0, 10);
+  };
+
+  const formatTime = (minutes) => {
+    const h = Math.floor(minutes / 60) % 24;
+    const m = minutes % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  };
+
+  const startMin = parseTime(startTime);
+  const endMin = parseTime(endTime);
+  const totalMinutes = Math.max(endMin - startMin, interval);
+  const slots = Math.ceil(totalMinutes / interval);
+
+  const timeSlots = [];
+  for (let i = 0; i <= slots; i++) {
+    const min = startMin + i * interval;
+    if (min <= endMin) timeSlots.push(min);
+  }
+
+  const totalHeight = Math.max(slots * slotHeight, 200);
+
+  const timeToPixel = (ts) => {
+    const min = parseTime(ts);
+    return ((min - startMin) / interval) * slotHeight;
+  };
+
+  const durationToPixel = (dur) => (dur / interval) * slotHeight;
+
+  const updSetting = (k, v) =>
+    setTimeline((prev) => ({
+      ...(prev || DEFAULT_TIMELINE),
+      settings: { ...(prev ? prev.settings : DEFAULT_TIMELINE.settings), [k]: v },
+    }));
+
+  const handleAreaClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const clickedMin = startMin + (y / slotHeight) * interval;
+    const snapped = Math.round(clickedMin / interval) * interval;
+    const clamped = Math.max(startMin, Math.min(endMin - interval, snapped));
+    setModalState({ isNew: true, event: null, clickedTime: formatTime(clamped) });
+  };
+
+  const handleSave = (form) => {
+    if (modalState.isNew) {
+      const id = Date.now().toString();
+      setTimeline((prev) => ({
+        ...(prev || DEFAULT_TIMELINE),
+        events: [...((prev || DEFAULT_TIMELINE).events || []), { ...form, id }],
+      }));
+    } else {
+      setTimeline((prev) => ({
+        ...(prev || DEFAULT_TIMELINE),
+        events: ((prev || DEFAULT_TIMELINE).events || []).map((e) =>
+          e.id === modalState.event.id ? { ...e, ...form } : e
+        ),
+      }));
+    }
+    setModalState(null);
+  };
+
+  const handleDelete = (id) => {
+    setTimeline((prev) => ({
+      ...(prev || DEFAULT_TIMELINE),
+      events: ((prev || DEFAULT_TIMELINE).events || []).filter((e) => e.id !== id),
+    }));
+    setModalState(null);
+  };
+
+  const sortedEvents = [...events].sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+
+  const inputStyle = {
+    display: "block", width: "100%", marginTop: 5,
+    padding: "8px 10px", border: `1.5px solid ${COLORS.border}`,
+    borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', sans-serif",
+    background: COLORS.white, color: COLORS.ink, boxSizing: "border-box",
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 500, color: COLORS.ink, margin: 0 }}>
+            {t("tl_title")}
+          </h2>
+          <p style={{ color: COLORS.muted, fontSize: 14, margin: "4px 0 0" }}>{t("tl_sub")}</p>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <button
+            onClick={() => setShowSettings((s) => !s)}
+            style={{ padding: "8px 16px", background: showSettings ? COLORS.roseLight : COLORS.white, color: showSettings ? COLORS.rose : COLORS.muted, border: `1.5px solid ${showSettings ? COLORS.rose : COLORS.border}`, borderRadius: 10, cursor: "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}
+          >
+            ⚙ {t("tl_settings")}
+          </button>
+          <button
+            onClick={() => setModalState({ isNew: true, event: null, clickedTime: startTime })}
+            style={{ padding: "8px 18px", background: COLORS.rose, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}
+          >
+            + {t("tl_add_event")}
+          </button>
+        </div>
+      </div>
+
+      {showSettings && (
+        <div style={{ background: COLORS.white, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: COLORS.ink, marginBottom: 16 }}>{t("tl_settings")}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+            <label style={{ fontSize: 12, color: COLORS.muted }}>
+              {t("tl_start")}
+              <input type="time" value={startTime} onChange={(e) => updSetting("startTime", e.target.value)} style={inputStyle} />
+            </label>
+            <label style={{ fontSize: 12, color: COLORS.muted }}>
+              {t("tl_end")}
+              <input type="time" value={endTime} onChange={(e) => updSetting("endTime", e.target.value)} style={inputStyle} />
+            </label>
+            <label style={{ fontSize: 12, color: COLORS.muted }}>
+              {t("tl_interval")}
+              <select value={interval} onChange={(e) => updSetting("interval", Number(e.target.value))} style={inputStyle}>
+                <option value={15}>15 {t("tl_min")}</option>
+                <option value={30}>30 {t("tl_min")}</option>
+                <option value={60}>60 {t("tl_min")}</option>
+              </select>
+            </label>
+            <label style={{ fontSize: 12, color: COLORS.muted }}>
+              {t("tl_row_height")}
+              <select value={slotHeight} onChange={(e) => updSetting("slotHeight", Number(e.target.value))} style={inputStyle}>
+                <option value={40}>{t("tl_compact")}</option>
+                <option value={60}>{t("tl_normal")}</option>
+                <option value={80}>{t("tl_spacious")}</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", background: COLORS.white, borderRadius: 16, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
+        <div style={{ width: 68, flexShrink: 0, background: COLORS.champagne, borderRight: `1px solid ${COLORS.border}`, position: "relative", height: totalHeight }}>
+          {timeSlots.map((min) => (
+            <div
+              key={min}
+              style={{ position: "absolute", top: ((min - startMin) / interval) * slotHeight - 8, left: 0, right: 0, textAlign: "right", paddingRight: 10, fontSize: 10, color: COLORS.muted, fontFamily: "'DM Sans', sans-serif", fontWeight: min % 60 === 0 ? 600 : 400, userSelect: "none", color: min % 60 === 0 ? COLORS.ink : COLORS.muted }}
+            >
+              {formatTime(min)}
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{ flex: 1, position: "relative", height: totalHeight, cursor: "crosshair" }}
+          onClick={handleAreaClick}
+        >
+          {timeSlots.map((min) => (
+            <div
+              key={min}
+              style={{ position: "absolute", top: ((min - startMin) / interval) * slotHeight, left: 0, right: 0, height: min % 60 === 0 ? 1.5 : 1, background: min % 60 === 0 ? COLORS.champagneDark : COLORS.border, pointerEvents: "none" }}
+            />
+          ))}
+
+          {events.length === 0 && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+              <div style={{ textAlign: "center", opacity: 0.5 }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>🕐</div>
+                <div style={{ fontSize: 13, color: COLORS.muted, fontFamily: "'DM Sans', sans-serif" }}>{t("tl_click_to_add")}</div>
+              </div>
+            </div>
+          )}
+
+          {sortedEvents.map((event) => {
+            const top = timeToPixel(event.startTime);
+            const height = Math.max(durationToPixel(event.duration), slotHeight * 0.45);
+            return (
+              <div
+                key={event.id}
+                onClick={(e) => { e.stopPropagation(); setModalState({ isNew: false, event }); }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.78")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                style={{ position: "absolute", top: top + 2, left: 8, right: 8, height: height - 4, background: event.color + "22", borderLeft: `3px solid ${event.color}`, borderRadius: 6, padding: "5px 8px", cursor: "pointer", overflow: "hidden", boxSizing: "border-box", transition: "opacity 0.15s" }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 600, color: event.color, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
+                {height > 28 && (
+                  <div style={{ fontSize: 11, color: COLORS.muted, lineHeight: 1.3 }}>
+                    {event.startTime}
+                    {event.duration >= interval && ` · ${event.duration} ${t("tl_min")}`}
+                    {event.category ? ` · ${event.category}` : ""}
+                  </div>
+                )}
+                {height > 56 && event.description && (
+                  <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2, overflow: "hidden", lineHeight: 1.3 }}>{event.description}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {sortedEvents.length > 0 && (
+        <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
+          {sortedEvents.map((ev) => (
+            <div
+              key={ev.id}
+              onClick={() => setModalState({ isNew: false, event: ev })}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", background: ev.color + "18", border: `1px solid ${ev.color}44`, borderRadius: 20, cursor: "pointer", fontSize: 12, color: COLORS.ink, fontFamily: "'DM Sans', sans-serif", transition: "opacity 0.15s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.72")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: ev.color, display: "inline-block", flexShrink: 0 }} />
+              <span style={{ fontWeight: 500 }}>{ev.startTime}</span>
+              {ev.title}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {modalState && (
+        <TimelineEventModal
+          event={modalState.isNew ? null : modalState.event}
+          isNew={modalState.isNew}
+          defaultStartTime={modalState.clickedTime || (modalState.event && modalState.event.startTime) || startTime}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          onClose={() => setModalState(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 const NAV_ITEMS_BASE = [
   { id: "overview", label: "Overview", icon: "🌸" },
   { id: "budget", label: "Budget", icon: "💰" },
@@ -4037,6 +4802,7 @@ const NAV_ITEMS_BASE = [
   { id: "tables", label: "Seating", icon: "🪑" },
   { id: "checklist", label: "Checklist", icon: "✅" },
   { id: "vendors", label: "Vendors", icon: "🎀" },
+  { id: "timeline", label: "Timeline", icon: "🕐" },
 ];
 
 const SETTINGS_NAV_ITEM = { id: "settings", label: "Settings", icon: "⚙️" };
@@ -4050,6 +4816,7 @@ export default function WeddingPlanner() {
   const [tables, setTables] = useState([]);
   const [checklist, setChecklist] = useState([]);
   const [vendors, setVendors] = useState([]);
+  const [timeline, setTimeline] = useState(DEFAULT_TIMELINE);
   const [navItems, setNavItems] = useState([
     ...NAV_ITEMS_BASE,
     SETTINGS_NAV_ITEM,
@@ -4097,6 +4864,7 @@ export default function WeddingPlanner() {
     tables: "nav_seating",
     checklist: "nav_checklist",
     vendors: "nav_vendors",
+    timeline: "nav_timeline",
     settings: "nav_settings",
   };
 
@@ -4120,6 +4888,7 @@ export default function WeddingPlanner() {
           setTables(data.tables || []);
           setChecklist(data.checklist || []);
           setVendors(data.vendors || []);
+          setTimeline(data.timeline || DEFAULT_TIMELINE);
           setNavItems([...(data.nav || NAV_ITEMS_BASE), SETTINGS_NAV_ITEM]);
           if (data.meta && data.meta.lang) {
             setLangState(data.meta.lang);
@@ -4170,6 +4939,7 @@ export default function WeddingPlanner() {
   const setTablesPersist = createPersistSetter("tables", setTables);
   const setChecklistPersist = createPersistSetter("checklist", setChecklist);
   const setVendorsPersist = createPersistSetter("vendors", setVendors);
+  const setTimelinePersist = createPersistSetter("timeline", setTimeline);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -4211,6 +4981,8 @@ export default function WeddingPlanner() {
         );
       case "vendors":
         return <Vendors vendors={vendors} setVendors={setVendorsPersist} />;
+      case "timeline":
+        return <Timeline timeline={timeline} setTimeline={setTimelinePersist} />;
       case "settings":
         return <Settings />;
       default:

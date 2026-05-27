@@ -190,13 +190,54 @@ v1.6 adds a dedicated **Timeline** tab for scheduling every moment of the event,
 
 ---
 
+### v1.7 — Per-Venue Editable Menu
+
+v1.7 adds a fully editable catering menu to each venue card, with course grouping and drag-and-drop reordering.
+
+**What changed:**
+
+**Menu per venue:**
+
+- Every venue card now has a collapsible **🍽 Menu** section — a pill badge shows the dish count when there are items
+- **Add dishes** via an inline form with three fields: **Course** (e.g. Starter, Main, Dessert), **Dish** name, and optional **Description**
+- **Menu grouped by course** — dishes are rendered under bold UPPERCASE rose-coloured section headers; each course is its own visual block
+- **Drag & drop** — each item has a `⠿` drag handle; drag onto another item to insert before it (adopting the target's course); drag onto a course section header to append to that course; changes persist immediately via the REST API
+- **Description right-aligned** — description text sits on the right side of each dish row and word-wraps as needed
+- **Remove** any dish with the `✕` button
+- Menu data stored per venue in `data/venues.json` as a `menu` array
+
+**Venue card UI polish:**
+
+- **"Select This Venue"** button moved to the top-right corner of the card (same position as the "✓ Selected" badge it replaces when not yet chosen)
+- **Price inline with notes** — the price sits flush-right on the same row as the venue description, always visible even when notes are empty
+- **Trash button** moved to the right end of the `🍽 Menu` bar (no longer in the bottom action row)
+- Removed the decorative separator line between the badges and notes; tightened vertical spacing throughout the card
+
+**`data/venues.json` — updated schema:**
+
+```json
+{
+  "id": 1,
+  "name": "The Grand Estate",
+  "menu": [
+    { "id": 1748400000000, "course": "Starter",    "name": "Bruschetta",     "description": "Crispy bread with tomatoes" },
+    { "id": 1748400000001, "course": "Main Course", "name": "Grilled Salmon", "description": "With lemon butter sauce" },
+    { "id": 1748400000002, "course": "Dessert",     "name": "Panna Cotta",    "description": "" }
+  ]
+}
+```
+
+**No infrastructure changes** — the existing `PUT /api/venues/:id` endpoint handles menu updates transparently.
+
+---
+
 ## Features
 
 | Section           | Description                                                                                                                     |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **Overview**      | Dashboard with days-to-wedding countdown, budget progress, guest RSVP summary, task completion, and selected venue/photographer |
 | **Budget**        | Set a total budget, add spending categories, track spent vs. budgeted per category with visual progress bars                    |
-| **Venues**        | Add venues with capacity, price, rating, and notes; mark one as selected                                                        |
+| **Venues**        | Add venues with capacity, price, rating, and notes; mark one as selected; edit a per-venue catering menu with course grouping and drag-and-drop reordering |
 | **Photographers** | Add photographers with style, price, rating; mark one as selected                                                               |
 | **Guests**        | Add guests with RSVP status (confirmed / pending / declined), search and filter, dietary notes                                  |
 | **Tables**        | Drag-and-drop seating planner — assign guests to named tables                                                                   |
@@ -229,9 +270,9 @@ npm install
 
 ---
 
-## Running the App (v1.6)
+## Running the App (v1.7)
 
-v1.5 requires both the API server and the Electron window to be running.
+v1.7 requires both the API server and the Electron window to be running.
 
 **Option A — double-click launcher (macOS):**
 

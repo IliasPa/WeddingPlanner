@@ -55,21 +55,21 @@
     },
     {
       "id": 8,
-      "name": "Honeymoon",
+      "name": "Miscellaneous",
       "budget": 5000,
       "spent": 0,
       "color": "#D4A8A0"
     },
     {
       "id": 9,
-      "name": "Miscellaneous",
+      "name": "Prewedding Party",
       "budget": 1700,
       "spent": 0,
       "color": "#8C7B74"
     },
     {
       "id": 10,
-      "name": "Miscellaneous",
+      "name": "Honeymoon",
       "budget": 1700,
       "spent": 0,
       "color": "#8C9B76"
