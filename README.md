@@ -1,6 +1,33 @@
 # Wedding Planner
 
-A personal event planning desktop app built with Electron + React. Manage your budget, guests, venues, photographers, seating, checklist, and vendors — all from one local app with data persisted to disk. Supports multiple event types: weddings, baptisms, receptions, birthdays, parties, and anniversaries.
+A personal event planning web app built with React. Manage your budget, guests, venues, photographers, seating, checklist, and vendors — all from a static GitHub Pages app with data stored directly in your GitHub repository. Supports multiple event types: weddings, baptisms, receptions, birthdays, parties, and anniversaries.
+
+---
+
+## v1.9 — GitHub Pages + GitHub API Storage
+
+The app is now a **static GitHub Pages site** with data stored directly to GitHub via its API.
+
+**Key Features:**
+- ✨ **No server required** — Pure static HTML/CSS/JS (React via CDN)
+- 🔐 **GitHub API storage** — Data persists to your GitHub repository
+- 🔑 **GitHub credentials** — Enter username, repo, and Personal Access Token on first save
+- 💾 **Save button** — Green when saved, yellow when changes pending
+- 🚀 **Free hosting** — Deploy to GitHub Pages instantly
+- 📱 **Full functionality** — All planning features work exactly as before
+
+**Setup:**
+1. Open the app in your browser
+2. Navigate and plan your event
+3. Click the **Save** button
+4. Enter your GitHub credentials on first save
+5. All changes persist to your GitHub repository
+
+**Data Flow:**
+- Navigate without credentials ✓
+- Setup modal appears on first save ✓
+- Single atomic commit with all changes to GitHub ✓
+- Refresh the page to load latest from GitHub ✓
 
 ---
 

@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Wedding Planner</title>
+    <link rel="icon" type="image/png" href="icon.PNG" />
     <style>
       html,
       body,
@@ -28,7 +29,7 @@
   <body>
     <div id="root"></div>
 
-    <script src="dataStore.js"></script>
+    <script src="githubDataStore.js"></script>
     <script type="text/babel">
       // Adapted from wedding_planner.jsx — runs in-browser via React CDN + Babel
       const { useState, useEffect, createContext, useContext } = React;
@@ -483,26 +484,19 @@
         },
       };
 
-      const API_BASE = "http://localhost:3001/api";
-
       async function apiPost(collection, item) {
-        const r = await fetch(`${API_BASE}/${collection}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(item),
-        });
-        if (!r.ok) throw new Error(await r.text());
-        return r.json();
+        const created = await window.GitHubDataStore.addItem(collection, item);
+        return created;
       }
 
       async function apiPatch(collection, id, patch) {
-        const r = await fetch(`${API_BASE}/${collection}/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(patch),
-        });
-        if (!r.ok) throw new Error(await r.text());
-        return r.json();
+        const updated = await window.GitHubDataStore.updateItem(collection, id, patch);
+        return updated;
+      }
+
+      async function apiDelete(collection, id) {
+        const result = await window.GitHubDataStore.removeItem(collection, id);
+        return result;
       }
 
       const COLORS = {
@@ -5946,50 +5940,57 @@
         });
         const [showMetaEdit, setShowMetaEdit] = useState(false);
         const [metaInput, setMetaInput] = useState(null);
+        const [showSetupModal, setShowSetupModal] = useState(false);
+        const [setupForm, setSetupForm] = useState({
+          owner: "",
+          repo: "",
+          token: "",
+        });
+        const [isSaved, setIsSaved] = useState(true);
+        const [isSaving, setIsSaving] = useState(false);
 
         useEffect(() => {
           const style = document.createElement("style");
           style.textContent = fonts;
           document.head.appendChild(style);
 
-          // Load data from DataStore (bundled JSON or localStorage override)
-          if (window.DataStore && window.DataStore.loadAll) {
-            window.DataStore.loadAll()
-              .then((data) => {
-                if (!data) return;
-                setVenues(data.venues || []);
-                setPhotographers(data.photographers || []);
-                setBudget(data.budget || { total: 0, categories: [] });
-                setGuests(data.guests || []);
-                setTables(data.tables || []);
-                const rawCl = data.checklist;
-                const clTasks = Array.isArray(rawCl)
-                  ? rawCl
-                  : rawCl && rawCl.tasks
-                    ? rawCl.tasks
-                    : [];
-                const clCats =
-                  !Array.isArray(rawCl) && rawCl && rawCl.categories
-                    ? rawCl.categories
-                    : [];
-                _checklistRef.current = clTasks;
-                _checklistCatsRef.current = clCats;
-                setChecklist(clTasks);
-                setChecklistCategories(clCats);
-                setVendors(data.vendors || []);
-                setTimeline(data.timeline || DEFAULT_TIMELINE);
-                if (data.meta) {
-                  setMeta(data.meta);
-                  if (data.meta.lang) {
-                    setLangState(data.meta.lang);
-                    try {
-                      localStorage.setItem("wp_lang", data.meta.lang);
-                    } catch (_) {}
-                  }
+          // Load data from GitHubDataStore
+          window.GitHubDataStore.loadAll()
+            .then((data) => {
+              if (!data) return;
+              setVenues(data.venues || []);
+              setPhotographers(data.photographers || []);
+              setBudget(data.budget || { total: 0, categories: [] });
+              setGuests(data.guests || []);
+              setTables(data.tables || []);
+              const rawCl = data.checklist;
+              const clTasks = Array.isArray(rawCl)
+                ? rawCl
+                : rawCl && rawCl.tasks
+                  ? rawCl.tasks
+                  : [];
+              const clCats =
+                !Array.isArray(rawCl) && rawCl && rawCl.categories
+                  ? rawCl.categories
+                  : [];
+              _checklistRef.current = clTasks;
+              _checklistCatsRef.current = clCats;
+              setChecklist(clTasks);
+              setChecklistCategories(clCats);
+              setVendors(data.vendors || []);
+              setTimeline(data.timeline || DEFAULT_TIMELINE);
+              if (data.meta) {
+                setMeta(data.meta);
+                if (data.meta.lang) {
+                  setLangState(data.meta.lang);
+                  try {
+                    localStorage.setItem("wp_lang", data.meta.lang);
+                  } catch (_) {}
                 }
-              })
-              .catch((e) => console.warn("DataStore.loadAll failed", e));
-          }
+              }
+              setIsSaved(true);
+            })
+            .catch((e) => console.warn("GitHubDataStore.loadAll failed", e));
 
           return () => document.head.removeChild(style);
         }, []);
@@ -5999,19 +6000,7 @@
           setter((prev) => {
             const next =
               typeof updater === "function" ? updater(prev) : updater;
-            try {
-              if (window.DataStore && window.DataStore.saveCollection) {
-                try {
-                  window.DataStore.saveCollection(key, next).catch((e) =>
-                    console.warn("saveCollection failed", key, e),
-                  );
-                } catch (e) {}
-                if (window.DataStore.loadCollection)
-                  window.DataStore.loadCollection(key).catch(() => {});
-              }
-            } catch (e) {
-              console.warn("Failed to persist", key, e);
-            }
+            setIsSaved(false);
             return next;
           });
         };
@@ -6092,6 +6081,54 @@
         };
 
         const ctxValue = { t, lang, setLang };
+
+        const handleSetupSubmit = async () => {
+          if (!setupForm.owner || !setupForm.repo || !setupForm.token) {
+            alert("Please fill in all fields");
+            return;
+          }
+          try {
+            window.GitHubDataStore.setConfig(
+              setupForm.owner,
+              setupForm.repo,
+              setupForm.token
+            );
+            setShowSetupModal(false);
+            window.location.reload();
+          } catch (e) {
+            alert("Failed to connect to GitHub: " + e.message);
+          }
+        };
+
+        const handleSaveAll = async () => {
+          const config = window.GitHubDataStore.getConfig();
+          if (!config || !config.token) {
+            setShowSetupModal(true);
+            return;
+          }
+          setIsSaving(true);
+          try {
+            const ds = window.GitHubDataStore;
+            // Pass current React state directly to saveAll for atomic push
+            await ds.saveAll({
+              venues,
+              photographers,
+              budget,
+              guests,
+              tables,
+              checklist: { tasks: checklist, categories: checklistCategories },
+              vendors,
+              timeline,
+              meta,
+            });
+            setIsSaved(true);
+          } catch (e) {
+            console.error("Failed to save:", e);
+            alert("Failed to save: " + e.message);
+          } finally {
+            setIsSaving(false);
+          }
+        };
 
         const navLabelKeys = {
           overview: "nav_overview",
@@ -6416,28 +6453,41 @@
                     borderTop: `1px solid ${COLORS.border}`,
                   }}
                 >
-                  <div
+                  <button
+                    onClick={handleSaveAll}
+                    disabled={isSaved || isSaving}
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: 13,
-                      color: COLORS.muted,
-                      fontStyle: "italic",
-                      textAlign: "center",
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: isSaved ? "#4ade80" : "#eab308",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: isSaved ? "default" : "pointer",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      fontWeight: 500,
+                      opacity: isSaved ? 0.7 : 1,
+                      transition: "background 0.2s",
                     }}
                   >
-                    {t("app_tagline")}
-                  </div>
+                    {isSaving
+                      ? "Saving..."
+                      : isSaved
+                        ? "✓ Saved"
+                        : "💾 Save"}
+                  </button>
                   <div
                     style={{
                       fontFamily: "'DM Sans', sans-serif",
                       fontSize: 10,
                       color: COLORS.border,
                       textAlign: "center",
-                      marginTop: 4,
+                      marginTop: 8,
                       letterSpacing: "0.06em",
                     }}
                   >
-                    v1.7
+                    v1.9
                   </div>
                 </div>
               </div>
@@ -6453,6 +6503,145 @@
                 {renderContent()}
               </main>
             </div>
+
+            {showSetupModal && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "rgba(0,0,0,0.5)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 10000,
+                }}
+              >
+                <div
+                  style={{
+                    background: "white",
+                    borderRadius: 12,
+                    padding: "32px",
+                    maxWidth: 400,
+                    boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <h2
+                    style={{
+                      margin: "0 0 8px 0",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 20,
+                      fontWeight: 600,
+                      color: COLORS.dark,
+                    }}
+                  >
+                    GitHub Setup
+                  </h2>
+                  <p
+                    style={{
+                      margin: "0 0 20px 0",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 13,
+                      color: COLORS.muted,
+                    }}
+                  >
+                    Connect to your GitHub repository to save your planning data.
+                  </p>
+                  <input
+                    type="text"
+                    placeholder="GitHub Username"
+                    value={setupForm.owner}
+                    onChange={(e) =>
+                      setSetupForm((f) => ({ ...f, owner: e.target.value }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      marginBottom: 12,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Repository Name"
+                    value={setupForm.repo}
+                    onChange={(e) =>
+                      setSetupForm((f) => ({ ...f, repo: e.target.value }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      marginBottom: 12,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="GitHub Personal Access Token"
+                    value={setupForm.token}
+                    onChange={(e) =>
+                      setSetupForm((f) => ({ ...f, token: e.target.value }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      marginBottom: 20,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <p
+                    style={{
+                      margin: "0 0 16px 0",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 11,
+                      color: COLORS.muted,
+                    }}
+                  >
+                    Create a token at{" "}
+                    <a
+                      href="https://github.com/settings/tokens/new?scopes=repo"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: COLORS.rose }}
+                    >
+                      github.com/settings/tokens
+                    </a>
+                    {" "}with <code>repo</code> scope.
+                  </p>
+                  <button
+                    onClick={handleSetupSubmit}
+                    style={{
+                      width: "100%",
+                      padding: "10px 16px",
+                      background: COLORS.rose,
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Connect
+                  </button>
+                </div>
+              </div>
+            )}
           </LangContext.Provider>
         );
       }
