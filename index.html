@@ -162,7 +162,9 @@
           gue_add: "+ Add Guest",
           gue_new: "New Guest",
           gue_name_ph: "Full name (or couple name)",
+          gue_count_ph: "People",
           gue_col_name: "Name",
+          gue_col_count: "People",
           gue_col_group: "Group",
           gue_col_rsvp: "RSVP",
           gue_col_dietary: "Dietary",
@@ -384,7 +386,9 @@
           gue_add: "+ Προσθήκη Καλεσμένου",
           gue_new: "Νέος Καλεσμένος",
           gue_name_ph: "Πλήρες όνομα (ή ζευγάρι)",
+          gue_count_ph: "Άτομα",
           gue_col_name: "Όνομα",
+          gue_col_count: "Άτομα",
           gue_col_group: "Ομάδα",
           gue_col_rsvp: "RSVP",
           gue_col_dietary: "Διατροφή",
@@ -3074,10 +3078,10 @@
         const [showTrash, setShowTrash] = useState(false);
         const [newGuest, setNewGuest] = useState({
           name: "",
+          count: 1,
           group: "Friend",
           rsvp: "pending",
           dietary: "None",
-          plusOne: false,
         });
 
         const activeGuests = guests.filter((g) => !g.deleted);
@@ -3093,16 +3097,17 @@
 
         const addGuest = () => {
           if (!newGuest.name) return;
+          const count = Math.max(1, parseInt(newGuest.count, 10) || 1);
           setGuests((gs) => [
             ...gs,
-            { ...newGuest, id: Date.now(), table: null, deleted: false },
+            { ...newGuest, count, id: Date.now(), table: null, deleted: false },
           ]);
           setNewGuest({
             name: "",
+            count: 1,
             group: "Friend",
             rsvp: "pending",
             dietary: "None",
-            plusOne: false,
           });
           setShowAdd(false);
         };
@@ -3285,9 +3290,10 @@
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "2fr 1fr 1fr 1fr",
+                    gridTemplateColumns: "2fr 0.7fr 1fr 1fr auto",
                     gap: 10,
                     marginBottom: 10,
+                    alignItems: "center",
                   }}
                 >
                   <input
@@ -3296,6 +3302,24 @@
                       setNewGuest((g) => ({ ...g, name: e.target.value }))
                     }
                     placeholder={t("gue_name_ph")}
+                    style={{
+                      padding: "7px 12px",
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 8,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 13,
+                      background: COLORS.white,
+                    }}
+                  />
+                  <input
+                    value={newGuest.count}
+                    onChange={(e) =>
+                      setNewGuest((g) => ({ ...g, count: e.target.value }))
+                    }
+                    type="number"
+                    min="1"
+                    title={t("gue_col_count")}
+                    placeholder={t("gue_count_ph")}
                     style={{
                       padding: "7px 12px",
                       border: `1px solid ${COLORS.border}`,
@@ -3376,6 +3400,7 @@
                   <tr style={{ background: COLORS.champagne }}>
                     {[
                       t("gue_col_name"),
+                      t("gue_col_count"),
                       t("gue_col_group"),
                       t("gue_col_rsvp"),
                       t("gue_col_dietary"),
@@ -3419,17 +3444,16 @@
                         }}
                       >
                         {g.name}
-                        {g.plusOne && (
-                          <span
-                            style={{
-                              fontSize: 11,
-                              color: COLORS.muted,
-                              marginLeft: 6,
-                            }}
-                          >
-                            +1
-                          </span>
-                        )}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px 16px",
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 14,
+                          color: COLORS.ink,
+                        }}
+                      >
+                        ×{g.count || 1}
                       </td>
                       <td style={{ padding: "10px 16px" }}>
                         <Badge color={COLORS.brown} bg={COLORS.champagne}>
@@ -3618,7 +3642,7 @@
                     <option value="">{t("tbl_guest_ph")}</option>
                     {unassigned.map((g) => (
                       <option key={g.id} value={g.id}>
-                        {g.name}
+                        {g.name} (×{g.count || 1})
                       </option>
                     ))}
                   </select>
@@ -3758,7 +3782,10 @@
             >
               {tables.map((tbl) => {
                 const tableGuests = guests.filter((g) => g.table === tbl.id);
-                const occupancy = tableGuests.length;
+                const occupancy = tableGuests.reduce(
+                  (sum, g) => sum + (g.count || 1),
+                  0,
+                );
                 const full = occupancy >= tbl.capacity;
                 return (
                   <Card
@@ -3865,6 +3892,15 @@
                               }}
                             >
                               {g.name}
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  color: COLORS.muted,
+                                  marginLeft: 6,
+                                }}
+                              >
+                                ×{g.count || 1}
+                              </span>
                             </span>
                             <button
                               onClick={() => removeFromTable(g.id)}
