@@ -162,10 +162,9 @@
       return data;
     } catch (err) {
       console.warn("Failed to load bundled JSON for", key, err.message);
-      if (!store[key]) {
-        store[key] = Array.isArray(store[key]) ? store[key] : {};
-      }
-      return store[key];
+      // Don't poison the store with an empty object: the caller applies the
+      // correct per-collection default (array, budget shape, timeline, etc.).
+      return store[key] !== undefined ? store[key] : null;
     }
   }
 
