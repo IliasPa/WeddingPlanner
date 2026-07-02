@@ -15,6 +15,22 @@
       body {
         background: #faf6f1;
       }
+      /* --- Mobile / phone adaptations (<=768px) --- */
+      @media (max-width: 768px) {
+        /* Never let content push the page wider than the screen */
+        html,
+        body {
+          overflow-x: hidden;
+        }
+        /* The whole UI is built with inline-styled multi-column grids
+           (stat rows, forms, card layouts). On a phone there is no room
+           for side-by-side columns, so collapse every grid to a single
+           column. This targets the serialized inline style attribute,
+           which lets one rule fix ~40 grids without editing each one. */
+        [style*="grid-template-columns"] {
+          grid-template-columns: 1fr !important;
+        }
+      }
     </style>
     <script
       crossorigin
@@ -35,6 +51,23 @@
       const { useState, useEffect, createContext, useContext } = React;
 
       const LangContext = createContext(null);
+
+      // True when the viewport is phone-sized. Used to switch the shell
+      // (sidebar/nav/content) between the desktop and mobile layouts.
+      function useIsMobile(breakpoint = 768) {
+        const [isMobile, setIsMobile] = useState(
+          typeof window !== "undefined"
+            ? window.innerWidth <= breakpoint
+            : false,
+        );
+        useEffect(() => {
+          const onResize = () =>
+            setIsMobile(window.innerWidth <= breakpoint);
+          window.addEventListener("resize", onResize);
+          return () => window.removeEventListener("resize", onResize);
+        }, [breakpoint]);
+        return isMobile;
+      }
 
       const TRANSLATIONS = {
         en: {
@@ -5949,6 +5982,7 @@
       ];
 
       function WeddingPlanner() {
+        const isMobile = useIsMobile();
         const [activeTab, setActiveTab] = useState("overview");
         const [venues, setVenues] = useState([]);
         const [photographers, setPhotographers] = useState([]);
@@ -6248,6 +6282,7 @@
             <div
               style={{
                 display: "flex",
+                flexDirection: isMobile ? "column" : "row",
                 minHeight: "100vh",
                 background: COLORS.bg,
                 fontFamily: "'DM Sans', sans-serif",
@@ -6255,15 +6290,21 @@
             >
               <div
                 style={{
-                  width: 220,
+                  width: isMobile ? "100%" : 220,
                   background: COLORS.white,
-                  borderRight: `1px solid ${COLORS.border}`,
+                  borderRight: isMobile
+                    ? "none"
+                    : `1px solid ${COLORS.border}`,
+                  borderBottom: isMobile
+                    ? `1px solid ${COLORS.border}`
+                    : "none",
                   display: "flex",
                   flexDirection: "column",
                   flexShrink: 0,
-                  position: "sticky",
+                  position: isMobile ? "static" : "sticky",
                   top: 0,
-                  height: "100vh",
+                  height: isMobile ? "auto" : "100vh",
+                  boxSizing: "border-box",
                 }}
               >
                 <div
@@ -6448,7 +6489,17 @@
                     </div>
                   )}
                 </div>
-                <nav style={{ padding: "12px 12px", flex: 1 }}>
+                <nav
+                  style={{
+                    padding: "12px 12px",
+                    flex: 1,
+                    display: isMobile ? "flex" : "block",
+                    flexDirection: isMobile ? "row" : "column",
+                    overflowX: isMobile ? "auto" : "visible",
+                    WebkitOverflowScrolling: "touch",
+                    gap: isMobile ? 4 : 0,
+                  }}
+                >
                   {navItems.map((item) => (
                     <button
                       key={item.id}
@@ -6457,7 +6508,9 @@
                         display: "flex",
                         alignItems: "center",
                         gap: 10,
-                        width: "100%",
+                        width: isMobile ? "auto" : "100%",
+                        flexShrink: 0,
+                        whiteSpace: "nowrap",
                         padding: "10px 12px",
                         background:
                           activeTab === item.id
@@ -6523,7 +6576,7 @@
                       letterSpacing: "0.06em",
                     }}
                   >
-                    v1.9
+                    v2.1
                   </div>
                 </div>
               </div>
@@ -6531,9 +6584,11 @@
               <main
                 style={{
                   flex: 1,
-                  padding: "36px 40px",
+                  width: isMobile ? "100%" : "auto",
+                  padding: isMobile ? "20px 14px" : "36px 40px",
                   overflowY: "auto",
-                  maxWidth: 900,
+                  maxWidth: isMobile ? "100%" : 900,
+                  boxSizing: "border-box",
                 }}
               >
                 {renderContent()}

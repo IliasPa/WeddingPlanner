@@ -4,6 +4,21 @@ A personal event planning web app built with React. Manage your budget, guests, 
 
 ---
 
+## v2.1 — Mobile & Responsive Layout
+
+v2.1 makes the app fully usable on phones. Previously the desktop-only layout (a fixed 220px sidebar next to the content) crushed everything into an unusable strip on a phone-sized screen.
+
+**What changed:**
+
+- 📱 **Responsive shell** — a `useIsMobile()` hook (≤768px breakpoint) switches the layout: on phones the sidebar becomes a full-width top bar, the vertical nav turns into a horizontally-scrollable tab strip, and the content area goes full-width with lighter padding
+- 🧱 **Single-column stacking** — a single global media query collapses every multi-column grid (stat cards, forms, dashboards) to one column on phones, so nothing overflows the screen
+- 👆 **Touch-friendly** — with controls no longer squeezed to a few pixels wide, all buttons, dropdowns, and forms are tappable; the seating planner (dropdown + "Assign") and timeline (tap-to-add) already work by touch
+- 🖥 **Desktop unchanged** — all mobile styling is gated behind the breakpoint, so the desktop layout is pixel-for-pixel identical
+
+**Known limitation:** venue-menu dish reordering still relies on HTML5 drag-and-drop, which does not fire on touchscreens.
+
+---
+
 ## v1.9 — GitHub Pages + GitHub API Storage
 
 The app is now a **static GitHub Pages site** with data stored directly to GitHub via its API.
@@ -255,6 +270,24 @@ v1.7 adds a fully editable catering menu to each venue card, with course groupin
 ```
 
 **No infrastructure changes** — the existing `PUT /api/venues/:id` endpoint handles menu updates transparently.
+
+---
+
+### v1.9 — GitHub Pages + GitHub API Storage
+
+v1.9 dropped the Electron shell and local REST server in favour of a pure static site hosted on GitHub Pages, with data persisted directly to a GitHub repository via its API. See the **v1.9 — GitHub Pages + GitHub API Storage** section at the top of this README for details.
+
+---
+
+### v2.0 — Guest Party Size
+
+v2.0 replaces the boolean plus-one flag with a numeric **party size** per guest, so a single invitation can represent a couple, a family, or any group. Guest counts and the confirmed-guests totals now sum party sizes rather than counting heads one at a time.
+
+---
+
+### v2.1 — Mobile & Responsive Layout
+
+v2.1 adds a responsive layout so the app works on phones: the sidebar collapses into a full-width top bar with a horizontally-scrollable tab strip, multi-column grids stack into a single column, and the content area fills the screen. See the **v2.1 — Mobile & Responsive Layout** section at the top of this README for details.
 
 ---
 
